@@ -1,5 +1,7 @@
 # The order of the test run
-In the console
+
+bash:
+
 1. `google-chrome window.html`
 2. `google-chrome define.html`
 3. `mocha require.js -R spec`
