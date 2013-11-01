@@ -10,11 +10,17 @@
         
         blackstone.Blackstone = Blackstone; // Alias constructor
         
-        // Dependencies.
+        // Dependencies
         blackstone.dependencies = {
             lodash: lodash, async: async
         };
+        
+        // Version
+        blackstone.version = 'develop';
     };
+    
+    // Version
+    Blackstone.version = 'develop';
     
     // Connector
     // Library has no control over the version dependencies
