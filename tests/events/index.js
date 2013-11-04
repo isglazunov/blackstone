@@ -8,55 +8,47 @@ describe('blackstone', function(){
         
         var Events = blackstone.Events;
         
-        it('should be an instanceof Prototype', function(){
-            Events.should.be.an.instanceof(blackstone.Prototype);
-        });
-        
-        describe('eventer', function(){
+        describe('events', function(){
             
-            var events = Events.new();
+            var events = new Events;
             
             var results = [];
             
-            it('should be an instanceof Instance', function(){
-                events.should.be.an.instanceof(blackstone.Instance);
-            });
-            
-            it('sequence of events', function(done){
-                events.on("*", function(next, event){
+            it('sequence', function(done){
+                events.bind("*", function(next, event){
                     results.push(event);
                     next();
                 });
-                events.on("action", function(next){
+                events.bind("action", function(next){
                     setTimeout(function(){
                         results.push(0);
                         next();
                     }, 50);
                 }, {limit: 123});
                 
-                events.on("action", function(next){
+                events.bind("action", function(next){
                     setTimeout(function(){
                         results.push(1);
                         next();
                     }, 50);
                 }, {limit: 1});
                 
-                events.on("action", function(self, next){
-                    self.off();
+                events.bind("action", function(self, next){
+                    self.unbind();
                     setTimeout(function(){
                         results.push(2);
                     }, 100);
                 }, {self: true, sync: true});
                 
-                events.on("action", function(next, number){
+                events.bind("action", function(next, number){
                     setTimeout(function(){
                         results.push(number);
                         next();
                     }, 50);
                 });
                 
-                events.on("action", function(self, next){
-                    self.off();
+                events.bind("action", function(self, next){
+                    self.unbind();
                     var _this = this;
                     setTimeout(function(){
                         results.push(_this.context);

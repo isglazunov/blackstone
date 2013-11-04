@@ -18,122 +18,35 @@
         // Version
         blackstone.version = 'develop';
         
-        // Prototypes
-        
-        var prototypesIndex = 0;
-        var instancesIndex = 0;
-        
-        // Prototype
-        var Prototype = blackstone.Prototype = function(options){
-            this.index = prototypesIndex++;
-            this.constructor = undefined;
-            this.prototype = {};
-            this.prototypes = [];
-            lodash.merge(this, options);
+        // Событийная система
+        // Внимание! Недопустимо изменять __events* атрибуты после создания первого события
+        var Events = blackstone.Events = function(){
+            
+            // Опции устанавливаемые для каждого экземпляра событийной системы
+            this.__eventsSync = false; // Синхронный или асинхронный обработчик
+            this.__eventsSelf = false; // Добавлять или не добавлять аргумент управления обработчиком из обработчика
+            this.__eventsAll = '*'; // Имя общего обработчика
+            this.__eventsLimit = null; // Лимит вызовов обработчика по умолчанию
+            this.__events = {}; // Поименный хеш всех событий, ссылки на первый из обработчиков
         };
         
-        var _instanceof = function(prototype, index){
-            if(prototype instanceof Prototype) {
-                if (prototype.index == index) return true;
-                else {
-                    for (var p in prototype.prototypes) {
-                        if (_instanceof(prototype.prototypes[p].prototype, index)) return true;
-                    }
-                }
-            }
-            return false;
-        };
+        // Уникальный index каждого обработчика
+        Events.__index = 0;
         
-        Prototype.prototype.new = function(){
-            var prototype = this;
-            
-            var pre = function(){};
-            pre.prototype = new Instance;
-            
-            // prototypes.prototypes
-            var eachPrototype = function(prot){
-                lodash.each(prot.prototypes, function(ins){
-                    if (ins instanceof Instance && ins.prototype && ins.prototype.prototype) {
-                        lodash.merge(pre.prototype, ins.prototype.prototype);
-                        eachPrototype(ins.prototype);
-                    }
-                });
-            };
-            
-            eachPrototype(prototype);
-            
-            // prototype.prototype
-            if (prototype.prototype) lodash.merge(pre.prototype, prototype.prototype);
-            
-            var instance = new pre;
-            
-            // prototypes instances
-            lodash.each(prototype.prototypes, function(ins){
-                if (ins instanceof Instance) lodash.merge(instance, ins);
-            });
-            
-            instance.prototype = prototype;
-            
-            // constructor
-            if (lodash.isFunction(prototype.constructor)) prototype.constructor.apply(instance, arguments);
-            else if(lodash.isObject(prototype.constructor)) lodash.merge(instance, prototype.constructor);
-            
-            instance.index = instancesIndex++;
-            
-            return instance;
-        };
-        
-        Prototype.prototype.instanceof = function(){
-            for (var a in arguments) {
-                if (!_instanceof(this, arguments[a].index)) return false;
-            }
-            return true;
-        };
-        
-        // Instance
-        var Instance = blackstone.Instance = function(){};
-        
-        Instance.prototype.instanceof = function(){
-            for (var a in arguments) {
-                if (arguments[a] instanceof Prototype) {
-                    if (!_instanceof(this.prototype, arguments[a].index)) return false;
-                }
-            }
-            return true;
-        };
-        
-        Instance.prototype.extend = function(options){
-            var prototype = new Prototype(options);
-            prototype.prototypes.push(this);
-            return prototype
-        };
-        
-        // Events
-        var eventsIndex = 0;
-        
-        // Events
-        var Events = blackstone.Events = new blackstone.Prototype({
-            prototype: function(){
-                this._sync = false;
-                this._self = false;
-                this._limit = null;
-                this._events = {};
-            }
-        });
-        
-        var off = function(self, name, handler){
-            if (!handler.prev) { // first
-                if (!handler.next) { // last
-                    delete self.prototype._events[name];
+        // Снятие прослушивания конкретного обработчика
+        Events.unbind = function(self, name, handler){
+            if(!handler.prev) { // first
+                if(!handler.next) { // last
+                    delete self.__events[name];
                 } else { // not last
-                    self.prototype._events[name] = handler.next;
+                    self.__events[name] = handler.next;
                     handler.next.prev = undefined;
                     handler.next.last = handler.last;
                     handler.next = undefined;
                 }
             } else { // not first
-                if (!handler.next) { // last
-                    self.prototype._events[name].last = handler.prev;
+                if(!handler.next) { // last
+                    self.__events[name].last = handler.prev;
                     handler.prev.next = undefined;
                     handler.prev = undefined;
                 } else { // not last
@@ -143,16 +56,16 @@
             }
         };
         
-        Events.prototype.on = function(name, callback, options){
+        Events.prototype.bind = function(name, callback, options){
             var options = lodash.isObject(options)? options : {}
             lodash.defaults(options, {
                 context: this,
-                sync: this.prototype._sync,
-                self: this.prototype._self,
-                limit: this.prototype._limit
+                sync: this.__eventsSync,
+                self: this.__eventsSelf,
+                limit: this.__eventsLimit
             });
             var event = {
-                index: eventsIndex++,
+                index: Events.__index++,
                 callback: callback,
                 context: options.context,
                 sync: options.sync,
@@ -161,23 +74,20 @@
                 prev: undefined,
                 next: undefined
             };
-            if(!lodash.isObject(this.prototype._events)) this.prototype._events = {};
-            if(this.prototype._events[name]) { // If list 
-                event.prev = this.prototype._events[name].last;
-                this.prototype._events[name].last.next = event;
-                this.prototype._events[name].last = event;
+            
+            if(!lodash.isObject(this.__events)) this.__events = {};
+            if(this.__events[name]) { // If list 
+                event.prev = this.__events[name].last;
+                this.__events[name].last.next = event;
+                this.__events[name].last = event;
             } else {;
                 event.last = event;
-                this.prototype._events[name] = event;
+                this.__events[name] = event;
             } 
             return this;
         };
         
-        Events.prototype.once = function(name, callback, options){
-            return this.on(name, callback, (options? lodash.merge(options, {limit: 1}) : {limit: 1}) );
-        };
-        
-        Events.prototype.off = function(query, callback){
+        Events.prototype.unbind = function(query, callback){
             var self = this;
             
             var options = {
@@ -196,158 +106,397 @@
                 if(!lodash.isUndefined(options.self) && handler.self !== options.sync) return;
                 if(!lodash.isUndefined(options.limit) && handler.limit !== options.limit) return;
                 
-                off(self, name, handler);
+                Events.unbind(self, name, handler);
             };
             var offEvent = function(name){
-                if(self.prototype._events[name]) {
-                    offHandler(name, self.prototype._events[name]);
+                if(self.__events[name]) {
+                    offHandler(name, self.__events[name]);
                 }
             };
             var offEvents = function(){
-                for(var name in self.prototype._events) {
+                for(var name in self.__events) {
                     offEvent(name);
                 }
             };
             
-            if(!lodash.isObject(this.prototype._events)) this.prototype._events = {};
+            if(!lodash.isObject(this.__events)) this.__events = {};
             if(lodash.isUndefined(options.name)) {
-                if(lodash.isUndefined(options.context) && lodash.isUndefined(options.callback) && lodash.isUndefined(options.sync) && lodash.isUndefined(options.limit)) self.prototype._events = {};
+                if(lodash.isUndefined(options.context) && lodash.isUndefined(options.callback) && lodash.isUndefined(options.sync) && lodash.isUndefined(options.limit)) self.__events = {};
                 else offEvent(options.name);
             } else {
-                if(self.prototype._events[options.name] && lodash.isUndefined(options.context) && lodash.isUndefined(options.callback) && lodash.isUndefined(options.sync) && lodash.isUndefined(options.limit)) delete self.prototype._events[options.name];
+                if(self.__events[options.name] && lodash.isUndefined(options.context) && lodash.isUndefined(options.callback) && lodash.isUndefined(options.sync) && lodash.isUndefined(options.limit)) delete self.__events[options.name];
                 else offEvents();
             }
         };
         
+        Events.Self = function(events, name, handler){
+            this.index = handler.index;
+            this.limit = function(limit){
+                if (lodash.isNumber(limit) || lodash.isNull(limit)) handler.limit = limit;
+                return handler.limit;
+            }
+            this.unbind = function(){
+                Events.unbind(events, name, handler);
+            }
+        };
+        
         Events.prototype.trigger = function(name){
-                var self = this;
-                var args = lodash.isArray(arguments[1]) || lodash.isArguments(arguments[1])? arguments[1] : [];
-                var callback = lodash.isFunction(arguments[1])? arguments[1] : lodash.isFunction(arguments[2])? arguments[2] : function(){};
-                
-                var core = function(handler){
-                    async.nextTick(function(){
-                        var next = coreNext(handler);
-                        if(lodash.isNumber(handler.limit)) {
-                            if(handler.limit > 0) handler.limit--;
-                            else return next();
-                        }
-                        
-                        var _args = [];
-                        if(handler.self) _args.push([{
-                            index: handler.index,
-                            limit: function(limit){
-                                if(lodash.isNumber(limit) || lodash.isNull(limit)) handler.limit = limit;
-                                return handler.limit;
-                            },
-                            off: function(){
-                                off(self, name, handler);
-                            },
-                        }]);
-                        
-                        if(!handler.sync) _args.push([next]);
-                        _args.push(args);
-                        
-                        handler.callback.apply(handler.context, [].concat.apply([], _args));
-                        if(handler.sync) next();
-                    });
+            var self = this;
+            var args = lodash.isArray(arguments[1]) || lodash.isArguments(arguments[1])? arguments[1] : [];
+            var callback = lodash.isFunction(arguments[1])? arguments[1] : lodash.isFunction(arguments[2])? arguments[2] : function(){};
+            
+            var core = function(handler){
+                var next = coreNext(handler);
+                if(lodash.isNumber(handler.limit)) {
+                    if(handler.limit > 0) handler.limit--;
+                    else return next();
                 }
                 
-                var coreNext = function(handler){
-                    var called = false;
-                    if(handler.next) {
-                        var next = handler.next;
-                        return function() {
-                            if(!called) {
-                                called = true;
-                                core(next);
-                            }
-                        }
-                    } else return function(){
-                        if(!called && callback) {
+                var _args = [];
+                if(handler.self) _args.push([new Events.Self(self, name, handler)]);
+                
+                if(!handler.sync) _args.push([next]);
+                _args.push(args);
+                handler.callback.apply(handler.context, [].concat.apply([], _args));
+                if (handler.sync) next();
+            }
+            
+            var coreNext = function(handler){
+                var called = false;
+                if(handler.next) {
+                    var next = handler.next;
+                    return function() {
+                        if(!called) {
                             called = true;
-                            callback();
+                            core(next);
                         }
                     }
-                };
-                
-                if(!lodash.isObject(this.prototype._events)) this.prototype._events = {};
-                if(self.prototype._events[name]) {
-                    if (name !== '*') {
-                        self.trigger('*', [name, args], function(){
-                            core(self.prototype._events[name]);
-                        })
-                    } else core(self.prototype._events[name]);
-                } else {
-                    if(callback) callback();
+                } else return function(){
+                    if(!called && callback) {
+                        called = true;
+                        callback();
+                    }
                 }
             };
-        
-        var types = blackstone.types = {};
-        
-        var Server = types.Server = Events.new().extend({
-            constructor: function(){
-                this._events = Events.new();
-            }
-        });
-        
-        Server.prototype.describe = function(name, description, options){
-            var server = this;
-            server.trigger("describe", [name, description], function(){
-                server.trigger(name+":describe", [name, description], function(){
-                    server._events.on(name, function(self, next, client, exports){
-                        description.apply(client, arguments);
-                    }, options);
-                    server.trigger("described", [name, description], function(){
-                        server.trigger(name+":described", [name, description]);
+            
+            if(!lodash.isObject(this.__events)) this.__events = {};
+            if(self.__events[name]) {
+                if(self.__eventsAll != name) {
+                    self.trigger(self.__eventsAll, [name, args], function(){
+                        core(self.__events[name]);
                     });
+                } else core(self.__events[name]);
+            } else {
+                if(callback) callback();
+            }
+        };
+        
+        // Новая типизация
+        // Внимание! Перекрывать __index не корректно
+        
+        // Основная функция-конструктор
+        // Создает объект с функционалом типа
+        // Type instance нужен для организации поведения и создания item
+        var Type = blackstone.Type = function(attributes){
+            
+            // Уникальный index каждого type
+            this.__index = Type.__index++;
+            
+            // Должен обладать функционалом событий
+            lodash.extend(this, new Events);
+            
+            // Слить переданные данные с this.
+            lodash.extend(this, attributes);
+            
+            // Ссылка на родителей в наследовании
+            // Должен быть массивом с экземплярами Type и Item
+            if (!lodash.isArray(this.types)) this.types = [];
+            
+            // Подделка под prototype аттрибут
+            // При создании item будет наследоваться
+            // Должен быть объектом
+            if (!lodash.isObject(this.prototype)) this.prototype = {};
+        };
+        lodash.extend(Type.prototype, Events.prototype);
+        
+        // Уникальный index каждого type.
+        Type.__index = 0;
+        
+        // Находит все типы используемые при наследовании по их __index
+        // В том числе если в types находится экземпляр
+        // Возвращает объект где key == __index
+        // Не проверяет является ли __index числом и types массивом
+        Type.prototype.__findAllTypes = function(){
+            
+            var results = {
+                byOrder: [], // В порядке добавления
+                byIndex: {} // По index(у)
+            };
+            
+            // Обработчик одного типа
+            var core = function(type){
+                if (!results.byIndex[type.__index]) { // Если ранее тип не обрабатывался
+                    
+                    // Добавить к обработанным
+                    results.byOrder.push(type);
+                    results.byIndex[type.__index] = type;
+                        
+                    // Обработать родителей
+                    for (var t in type.types) { // Каждый из родителей
+                        
+                        if (type.types[t] instanceof Type) { // Если родитель type
+                            // Слить результат его внутренних поисков с нашими
+                            lodash.extend(results, core(type.types[t]));
+                            
+                        } else if (type.types[t] instanceof Item) { // Если item
+                            if (type.types[t].type instanceof Type) {
+                                // Слить результат его внутренних поисков с нашими
+                                lodash.extend(results, core(type.types[t].type));
+                            }
+                        }
+                    }
+                }
+            };
+            
+            core(this);
+            
+            // Вернуть на уровень выше получившийся список index: type
+            return results;
+        };
+        
+        // Новая функция конструктор вместо native new
+        // Создает экземпляр Item из type и включая в него всех его родителей
+        Type.prototype.new = function(/* [args[, callback]] */){
+            var type = this; // Ссылка на тип
+            
+            // Обработка аргументов
+            var args = [];
+            var callback = function(){};
+            
+            if (lodash.isFunction(arguments[0])) {
+                var callback = arguments[0];
+            } else if (lodash.isArray(arguments[0])) {
+                var args = arguments[0];
+                if (lodash.isFunction(arguments[1])) callback = arguments[1];
+            }
+            
+            // Предварительный прототип для item, для обертки общих prototype
+            var PreItem = function(){};
+            PreItem.prototype = new Item;
+            
+            // Получить все наследуемые типы.
+            var types = this.__findAllTypes();
+            
+            // Слить прототипы
+            for(var t in types.byOrder) {
+                lodash.merge(PreItem.prototype, types.byOrder[t].prototype);
+            }
+            
+            // Создать экземпляр item
+            var item = new PreItem;
+            
+            item.__index = Item.__index++; // Уникальный index каждого item
+            item.type = this; // Ссылка на тип данного item
+            item.__behaviors = {}; // exports для поведений
+            
+            if (lodash.isFunction(this.constructor)) this.constructor.apply(item, args);
+            else if (!lodash.isArray(this.constructor) && lodash.isObject(this.constructor)) {
+                lodash.merge(item, this.constructor);
+            }
+            
+            async.mapSeries(types.byOrder, function(type, next){
+                type.trigger('behaviors', [item, item.__behaviors], next);
+            }, function(){
+                type.trigger('new', [args, item, types], function(){
+                    if (lodash.isFunction(callback)) callback(item, types);
                 });
             });
+            
+            // Вернуть получившийся item
+            return item;
+        };
+        
+        // Наследовать от type новый type.
+        Type.prototype.inherit = function(/* [attributes[, callback]] */){
+            
+            // Обработка аргументов
+            var attributes = {};
+            var callback = function(){};
+            
+            if (lodash.isFunction(arguments[0])) {
+                var callback = arguments[0];
+            } else if (lodash.isObject(arguments[0]) && !lodash.isArray(arguments[0])) {
+                var attributes = arguments[0];
+                if (lodash.isFunction(arguments[1])) callback = arguments[1];
+            }
+            
+            var type = new Type(attributes);
+            
+            type.types.push(this);
+            
+            this.trigger('inherit', [type], function(){
+                callback(type);
+            });
+            
+            return type;
+        };
+        
+        // Описать поведение внутри типа
+        Type.prototype.as = function(name, behavior, options){
+            var options = lodash.isObject(options)? options : {}
+            lodash.defaults(options, {
+                sync: this.__eventsSync,
+                self: this.__eventsSelf,
+                limit: this.__eventsLimit
+            });
+            
+            var type = this;
+            type.trigger('as', [name, behavior], function(){
+                type.bind('behaviors', function(){
+                    
+                    var args = lodash.toArray(arguments);
+                    var last = args.splice(args.length - 1, 1)[0];
+                    
+                    if (!lodash.isObject(last[name])) last[name] = {};
+                    
+                    args.push(last[name]);
+                    
+                    // item, type
+                    if (options.sync && !options.self) var item = args[0];
+                    
+                    // self, item, type // next, item, type
+                    else if ( (options.sync && options.self) || (!options.sync && !options.self) ) var item = args[1];
+                    
+                    // self, nexxt, item, type
+                    else var item = args[2];
+                    
+                    behavior.apply(item, args);
+                }, options);
+            });
+            
+            return this;
+        };
+        
+        // Удобный и быстрый способ унаследоваться в новом стиле
+        Type.inherit = function(attributes){
+            return new Type(attributes);
+        };
+        
+        // Объект - экземпляр наследующий все от экземпляров Type
+        // Внимание! Создание экземпляра item не через type не корректно
+        var Item = blackstone.Item = function(){
+            
+            // Должен обладать функционалом событий
+            lodash.extend(this, new Events);
+        };
+        
+        // Должен обладать функционалом событий
+        lodash.extend(Item.prototype, Events.prototype);
+        
+        // Возможности псевдо обращения к псевдо классам
+        Item.prototype.as = function(behavior){
+            if (this.__behaviors[behavior]) return this.__behaviors[behavior];
+            else return undefined;
+        };
+        
+        // Наследовать от item новый type.
+        Item.prototype.inherit = function(/* [attributes[, callback]] */){
+            
+            // Обработка аргументов
+            var attributes = {};
+            var callback = function(){};
+            
+            if (lodash.isFunction(arguments[0])) {
+                var callback = arguments[0];
+            } else if (lodash.isObject(arguments[0]) && !lodash.isArray(arguments[0])) {
+                var attributes = arguments[0];
+                if (lodash.isFunction(arguments[1])) callback = arguments[1];
+            }
+            
+            var type = new Type(attributes);
+            
+            type.types.push(this);
+            
+            this.trigger('inherit', [type], function(){
+                callback(type);
+            });
+            
+            return type;
+        };
+        
+        // Уникальный index каждого item
+        Item.__index = 0;
+        
+        // Тип для работы с документами
+        // Позволяет работать реагировать на события считывания и изменения документа
+        var Document = blackstone.Document = Type.inherit();
+        
+        // Вернуть документ
+        Document.prototype.get = function(callback){
+            var self = this;
+            
+            self.trigger('get', [lodash.cloneDeep(self.__document)], function(){
+                if(lodash.isFunction(callback)) callback(lodash.cloneDeep(self.__document));
+            });
+            
+            return self.__document;
+        };
+        
+        // Слить данные с документом
+        Document.prototype.set = function(data, callback){
+            var self = this;
+            
+            // Строгая типизация
+            if(!lodash.isObject(data) && lodash.isArray(data) && lodash.isFunction(data)) throw new TypeError('wrong data argument');
+            var prev = lodash.cloneDeep(self.__document); // Предыдущее состояние
+            lodash.merge(self.__document, data); // Слить данные с документом
+            
+            self.trigger('set', [lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data)], function(){
+                if(lodash.isFunction(callback)) callback(lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data));
+            });
+            
+            return self;
+        };
+        
+        // document.reset(Object data[, Function callback]);
+        // document.reset({}, function(){ /* after events */ }).get().attr
+        Document.prototype.reset = function(data, callback){
+            var self = this;
+            
+            // Strict typing argument Object data
+            if(!lodash.isObject(data) && lodash.isArray(data) && lodash.isFunction(data)) throw new TypeError('wrong Object data argument');
+            
+            var prev = lodash.cloneDeep(self.__document);
+            self.__document = data;
+            var exports = {};
+            
+            self.trigger('reset', [lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data)], function(){
+                self.trigger('set', [lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data)], function(){
+                    if(lodash.isFunction(callback)) callback(lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data));
+                });
+            });
+            
+            return self;
         };
     
-        Server.prototype.initialize = function(types, client, exports, callback){
-            var server = this;
-            server.trigger("initialize", [types, client, exports], function(){
-                async.mapSeries(types, function(type, next) {
-                    if(!lodash.isObject(exports[type])) exports[type] = {};
-                    server.trigger(type+":initialize", [type, client, exports[type]], function(){
-                        server._events.trigger(type, [client, exports[type]], function(){
-                            server.trigger(type+":initialized", [type, client, exports[type]], function(){
-                                next();
-                            });
-                        });
-                    });
-                }, function(){
-                    server.trigger("initialized", [types, client, exports], function(){
-                        if(lodash.isFunction(callback)) callback(types, client, exports);
+        // document.unset([Function callback]);
+        // document.unset(function(){ /* after events */ }).get() // {}
+        Document.prototype.unset = function(callback){
+            var self = this;
+            var prev = lodash.clone(self.__document);
+            var data = {};
+            self.__document = data;
+            var exports = {};
+            
+            self.trigger('unset', [lodash.cloneDeep(self.__document), prev], function(){
+                self.trigger('reset', [lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data)], function(){
+                    self.trigger('set', [lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data)], function(){
+                        if(lodash.isFunction(callback)) callback(lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data));
                     });
                 });
             });
-        };
-        
-        Server.prototype.use = function(name, client, exports){
-            return exports;
-        };
-        
-        blackstone.types.server = Server.new();
-        
-        var Client = types.Client = Events.new().extend({
-            constructor: function(){
-                this._server = blackstone.types.server;
-                this._types = [];
-                this._exports = {};
-            }
-        });
-        
-        Client.prototype.initialize = function(callback){
-            if(!lodash.isObject(this._exports)) this._exports = {};
-            return this._server.initialize(this._types, this, this._exports, function(types, client, exports){
-                callback(client);
-            });
-        };
-        
-        Client.prototype.as = function(name){
-            if(!lodash.isObject(this._exports)) this._exports = {};
-            return this._server.use(name, this, this._exports[name]);
+            
+            return self;
         };
     };
     

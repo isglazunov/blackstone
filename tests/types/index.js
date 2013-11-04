@@ -2,81 +2,123 @@ require('should');
 var lodash = require('lodash');
 var blackstone = require('../../blackstone.js');
 
-describe('blackstone', function(){
-    describe('types', function(){
+describe('blackstone types', function(){
+    
+    // Множественное наследование прототипов
+    it('multiple inheritance', function(){
         
-        var types = blackstone.types;
-        
-        it('should have type object', function(){
-            types.should.have.type('object');
+        var A = new blackstone.Type({
+            prototype: { a: true }
         });
         
-        describe('Server', function(){
+        var B = new blackstone.Type({
+            prototype: { b: true }
+        });
+        
+        var Z = new blackstone.Type({
+            prototype: { z: true },
+            types: [B]
+        });
+        
+        var C = new blackstone.Type({
+            prototype: { c: true },
+            types: [A, Z]
+        });
+        
+        var c = C.new();
+        
+        c.a.should.be.true;
+        c.b.should.be.true;
+        c.z.should.be.true;
+        c.c.should.be.true;
+    });
+    
+    // Быстрое наследование от type
+    it('type.inherit', function(){
+        
+        var A = new blackstone.Type({
+            prototype: { a: true }
+        });
+        
+        var B = A.inherit({
+            prototype: { b: true }
+        });
+        
+        var b = B.new();
+        
+        b.a.should.be.true;
+        b.b.should.be.true;
+    });
+    
+    // Быстрое наследование от item
+    it('item.inherit', function(){
+        
+        var A = new blackstone.Type({
+            prototype: { a: true }
+        });
+        
+        var a = A.new();
+        
+        var B = a.inherit({
+            prototype: { b: true }
+        });
+        
+        var b = B.new();
+        
+        b.a.should.be.true;
+        b.b.should.be.true;
+    });
+    
+    // Создание item с ожиданием завершения события new
+    it('new event', function(done){
+        
+        var A = new blackstone.Type();
+        
+        A.bind('new', function(next, args, a){
+            a.a = true;
+            setTimeout(next, 50);
+        })
+        
+        A.bind('new', function(next, args, a){
+            a.b = false;
+            setTimeout(next, 50);
+        })
+        
+        A.new(function(a){
+            a.a.should.be.true;
+            a.b.should.be.false;
+            done();
+        });
+    });
+    
+    // Псевдотипы у item
+    it('behaviors', function(done){
+        
+        var A = blackstone.Type.inherit();
+        A.as('z', function(next, item, exports){
+            exports.z = true;
+            next();
+        });
+        
+        var B = A.inherit({ __eventsSync: true });
+        B.as('y', function(item, exports){
+            exports.y = true;
+        });
+        
+        var C = B.inherit(lodash.pick(B, function(value, key){
+            return key.search(/^__events/g) != -1;
+        }));
+        
+        C.as('x', function(item, exports){
+            exports.x = true;
+        });
+        
+        C.new(function(c){
+            c.as('z').z.should.be.true;
+            c.as('y').y.should.be.true;
+            c.as('x').x.should.be.true;
             
-            var Server = types.Server;
-            
-            it('should be an instanceof Prototype', function(){
-                Server.should.be.an.instanceof(blackstone.Prototype);
-            });
-            
-            describe('server', function(){
-                
-                var server = Server.new();
-                /*
-                it('describe', function(){
-                    server.describe("type", function(client, exports){
-                        exports.sync = function(){ return true; };
-                    }, {sync: true});
-                    
-                    server.describe("type", function(next, client, exports){
-                        exports.async = function(){
-                            setTimeout(function(){
-                                client.async = false;
-                            }, 100);
-                        };
-                        next();
-                    });
-                });*/
-                
-                
-                
-                var C1 = types.Client;
-                console.dir(C1);
-                console.log("\r\n");
-                
-                var c1 = C1.new();
-                console.dir(c1);
-                console.log("\r\n");
-                
-                var C2 = c1.extend();
-                console.dir(C2);
-                console.log("\r\n");
-                
-                var c2 = C2.new();
-                console.dir(c2);
-                console.log("\r\n");
-                
-                /*
-                var Client = types.Client.new().extend({ _server: server })
-                
-                var client = Client.new();
-                client._types.push('user');
-                
-                it('initialize', function(done){
-                    client.initialize(function(client){
-                        console.dir(client.as("type"))
-                        client.sync = client.as("type").sync();
-                        client.as("type").async();
-                    });
-                    setTimeout(function(){
-                        client.sync.should.be.true;
-                        client.async.should.be.false;
-                        done();
-                    }, 500); 
-                });
-                */
-            });
-            
+            done();
         });
     });
 });
