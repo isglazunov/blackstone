@@ -1,7 +1,8 @@
 require('should');
+var lodash = require('lodash');
 var blackstone = require('../../blackstone.js');
 
-describe('blackstone typing', function(){
+describe('blackstone types', function(){
     
     // Множественное наследование прототипов
     it('multiple inheritance', function(){
@@ -32,7 +33,7 @@ describe('blackstone typing', function(){
         c.c.should.be.true;
     });
     
-    // Быстрое наследование от типа
+    // Быстрое наследование от type
     it('type.inherit', function(){
         
         var A = new blackstone.Type({
@@ -49,17 +50,36 @@ describe('blackstone typing', function(){
         b.b.should.be.true;
     });
     
+    // Быстрое наследование от item
+    it('item.inherit', function(){
+        
+        var A = new blackstone.Type({
+            prototype: { a: true }
+        });
+        
+        var a = A.new();
+        
+        var B = a.inherit({
+            prototype: { b: true }
+        });
+        
+        var b = B.new();
+        
+        b.a.should.be.true;
+        b.b.should.be.true;
+    });
+    
     // Создание item с ожиданием завершения события new
     it('new event', function(done){
         
         var A = new blackstone.Type();
         
-        A.bind('new', function(next, a){
+        A.bind('new', function(next, args, a){
             a.a = true;
             setTimeout(next, 50);
         })
         
-        A.bind('new', function(next, a){
+        A.bind('new', function(next, args, a){
             a.b = false;
             setTimeout(next, 50);
         })
@@ -67,6 +87,37 @@ describe('blackstone typing', function(){
         A.new(function(a){
             a.a.should.be.true;
             a.b.should.be.false;
+            done();
+        });
+    });
+    
+    // Псевдотипы у item
+    it('behaviors', function(done){
+        
+        var A = blackstone.Type.inherit();
+        A.as('z', function(next, item, exports){
+            exports.z = true;
+            next();
+        });
+        
+        var B = A.inherit({ __eventsSync: true });
+        B.as('y', function(item, exports){
+            exports.y = true;
+        });
+        
+        var C = B.inherit(lodash.pick(B, function(value, key){
+            return key.search(/^__events/g) != -1;
+        }));
+        
+        C.as('x', function(item, exports){
+            exports.x = true;
+        });
+        
+        C.new(function(c){
+            c.as('z').z.should.be.true;
+            c.as('y').y.should.be.true;
+            c.as('x').x.should.be.true;
+            
             done();
         });
     });
