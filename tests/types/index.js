@@ -4,7 +4,6 @@ var blackstone = require('../../blackstone.js');
 
 describe('blackstone types', function(){
     
-    // Множественное наследование прототипов
     it('multiple inheritance', function(){
         
         var A = new blackstone.Type({
@@ -33,7 +32,6 @@ describe('blackstone types', function(){
         c.c.should.be.true;
     });
     
-    // Быстрое наследование от type
     it('type.inherit', function(){
         
         var A = new blackstone.Type({
@@ -50,26 +48,6 @@ describe('blackstone types', function(){
         b.b.should.be.true;
     });
     
-    // Быстрое наследование от item
-    it('item.inherit', function(){
-        
-        var A = new blackstone.Type({
-            prototype: { a: true }
-        });
-        
-        var a = A.new();
-        
-        var B = a.inherit({
-            prototype: { b: true }
-        });
-        
-        var b = B.new();
-        
-        b.a.should.be.true;
-        b.b.should.be.true;
-    });
-    
-    // Создание item с ожиданием завершения события new
     it('new event', function(done){
         
         var A = new blackstone.Type();
@@ -91,7 +69,6 @@ describe('blackstone types', function(){
         });
     });
     
-    // Псевдотипы у item
     it('behaviors', function(done){
         
         var A = blackstone.Type.inherit();

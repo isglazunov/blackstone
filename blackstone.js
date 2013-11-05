@@ -1,5 +1,6 @@
 // blackstone:develop
 // https://github.com/isglazunov/blackstone/tree/develop
+// Uses the prefix __ to indicate the system variables. Use the system variables with the understanding!
 
 // Module
 (function(){
@@ -18,22 +19,25 @@
         // Version
         blackstone.version = 'develop';
         
-        // Событийная система
-        // Внимание! Недопустимо изменять __events* атрибуты после создания первого события
+        // Function .Events()
+        // System of events.
         var Events = blackstone.Events = function(){
             
-            // Опции устанавливаемые для каждого экземпляра событийной системы
-            this.__eventsSync = false; // Синхронный или асинхронный обработчик
-            this.__eventsSelf = false; // Добавлять или не добавлять аргумент управления обработчиком из обработчика
-            this.__eventsAll = '*'; // Имя общего обработчика
-            this.__eventsLimit = null; // Лимит вызовов обработчика по умолчанию
-            this.__events = {}; // Поименный хеш всех событий, ссылки на первый из обработчиков
+            // Options describing the behavior of an instance of an event of default.
+            // These options can be overridden when calling bind.
+            this.__eventsSync = false; // events.bind option: sync
+            this.__eventsSelf = false; // events.bind option: self
+            this.__eventsLimit = null; // events.bind option: limit
+            this.__eventsAll = '*'; // The event name is called when any event.
+            this.__events = {}; // An object with reference to the first handler for each event.
         };
         
-        // Уникальный index каждого обработчика
+        // A unique index for each event handler created blackstone.
         Events.__index = 0;
+        // The system variable. Use with understanding.
         
-        // Снятие прослушивания конкретного обработчика
+        // Function .Events.unbind(Object events, String name, Object handler)
+        // The withdrawal of the handler chain of handlers.
         Events.unbind = function(self, name, handler){
             if(!handler.prev) { // first
                 if(!handler.next) { // last
@@ -56,8 +60,33 @@
             }
         };
         
+        // Function .Events.Self(Object events, String name, Object handler)
+        // The constructor of the object `self`.
+        Events.Self = function(events, name, handler){
+            
+            // Number .index
+            this.index = handler.index;
+            
+            // Function .limit()
+            // Returns the current limit call handlers.
+            this.limit = function(limit){
+                if (lodash.isNumber(limit) || lodash.isNull(limit)) handler.limit = limit;
+                return handler.limit;
+            }
+            
+            // Function .unbind()
+            // Detach this handler.
+            this.unbind = function(){
+                Events.unbind(events, name, handler);
+            }
+        };
+        
+        // Function .bind(String name, Function callback[, Object options])
+        // Set the handler to the handler chain.
         Events.prototype.bind = function(name, callback, options){
             var options = lodash.isObject(options)? options : {}
+            
+            // Default options
             lodash.defaults(options, {
                 context: this,
                 sync: this.__eventsSync,
@@ -87,16 +116,19 @@
             return this;
         };
         
-        Events.prototype.unbind = function(query, callback){
+        // Function .unbind([Object query])
+        // Removes handlers of the handler chain as per request.
+        Events.prototype.unbind = function(query){
             var self = this;
             
+            // Default options
             var options = {
                 name: lodash.isString(query.name)? query.name : undefined,
                 context: !lodash.isUndefined(query.context)? query.context : undefined,
                 callback: lodash.isFunction(query.callback)? query.callback : undefined,
                 sync: lodash.isBoolean(query.sync)? query.sync : undefined,
                 self: lodash.isBoolean(query.self)? custom.self : undefined,
-                limit: lodash.isNull(query.limit) || lodash.isNumber(query.limit)? query.limit : undefined,
+                limit: lodash.isNull(query.limit) || lodash.isNumber(query.limit)? query.limit : undefined
             };
             
             var offHandler = function(name, handler){
@@ -129,17 +161,8 @@
             }
         };
         
-        Events.Self = function(events, name, handler){
-            this.index = handler.index;
-            this.limit = function(limit){
-                if (lodash.isNumber(limit) || lodash.isNull(limit)) handler.limit = limit;
-                return handler.limit;
-            }
-            this.unbind = function(){
-                Events.unbind(events, name, handler);
-            }
-        };
-        
+        // Function .trigger(String name[, Array args[, Function callback]]) or .trigger(String name[, Function callback])
+        // Trigger all event handlers by name.
         Events.prototype.trigger = function(name){
             var self = this;
             var args = lodash.isArray(arguments[1]) || lodash.isArguments(arguments[1])? arguments[1] : [];
@@ -157,8 +180,11 @@
                 
                 if(!handler.sync) _args.push([next]);
                 _args.push(args);
-                handler.callback.apply(handler.context, [].concat.apply([], _args));
-                if (handler.sync) next();
+                if (!handler.sync) {
+                    async.nextTick(function(){
+                        handler.callback.apply(handler.context, [].concat.apply([], _args));
+                    });
+                } else next();
             }
             
             var coreNext = function(handler){
@@ -191,66 +217,61 @@
             }
         };
         
-        // Новая типизация
-        // Внимание! Перекрывать __index не корректно
-        
-        // Основная функция-конструктор
-        // Создает объект с функционалом типа
-        // Type instance нужен для организации поведения и создания item
+        // Function .Type([Object attributes])
+        // Returns the object which received type behavior.
+        // The resulting type is used for the assembly item.
         var Type = blackstone.Type = function(attributes){
             
-            // Уникальный index каждого type
+            // A unique index for each type.
             this.__index = Type.__index++;
             
-            // Должен обладать функционалом событий
+            // Merge with a functional blackstone.Events.
             lodash.extend(this, new Events);
             
-            // Слить переданные данные с this.
+            // Merge with attributes.
             lodash.extend(this, attributes);
             
-            // Ссылка на родителей в наследовании
-            // Должен быть массивом с экземплярами Type и Item
-            if (!lodash.isArray(this.types)) this.types = [];
+            // Parental types.
+            var types = [];
+            if (lodash.isArray(attributes.types)) types.push.apply(types, attributes.types);
+            this.types = types;
             
-            // Подделка под prototype аттрибут
-            // При создании item будет наследоваться
-            // Должен быть объектом
-            if (!lodash.isObject(this.prototype)) this.prototype = {};
+            // Fake attribute prototype.
+            var prototype = {};
+            if (lodash.isObject(attributes.prototype)) lodash.merge(prototype, attributes.prototype);
+            this.prototype = prototype;
         };
+        
+        // Inherit methods blackstone.Events.
         lodash.extend(Type.prototype, Events.prototype);
         
-        // Уникальный index каждого type.
+        // A unique index for each type created blackstone.
         Type.__index = 0;
         
-        // Находит все типы используемые при наследовании по их __index
-        // В том числе если в types находится экземпляр
-        // Возвращает объект где key == __index
-        // Не проверяет является ли __index числом и types массивом
+        // Created to find all types of parenting including the source.
         Type.prototype.__findAllTypes = function(){
             
             var results = {
-                byOrder: [], // В порядке добавления
-                byIndex: {} // По index(у)
+                byOrder: [],
+                byIndex: {}
             };
             
-            // Обработчик одного типа
+            // One type handler
             var core = function(type){
-                if (!results.byIndex[type.__index]) { // Если ранее тип не обрабатывался
+                if (!results.byIndex[type.__index]) { // If it first handling
                     
-                    // Добавить к обработанным
+                    // Mark as handled
                     results.byOrder.push(type);
                     results.byIndex[type.__index] = type;
                         
-                    // Обработать родителей
-                    for (var t in type.types) { // Каждый из родителей
+                    // Handle parental types
+                    for (var t in type.types) {
                         
-                        if (type.types[t] instanceof Type) { // Если родитель type
-                            // Слить результат его внутренних поисков с нашими
+                        if (type.types[t] instanceof Type) {
                             lodash.extend(results, core(type.types[t]));
                             
-                        } else if (type.types[t] instanceof Item) { // Если item
+                        } else if (type.types[t] instanceof Item) {
                             if (type.types[t].type instanceof Type) {
-                                // Слить результат его внутренних поисков с нашими
                                 lodash.extend(results, core(type.types[t].type));
                             }
                         }
@@ -260,16 +281,16 @@
             
             core(this);
             
-            // Вернуть на уровень выше получившийся список index: type
             return results;
         };
         
-        // Новая функция конструктор вместо native new
-        // Создает экземпляр Item из type и включая в него всех его родителей
-        Type.prototype.new = function(/* [args[, callback]] */){
+        // Function .new([[Array args, ]Function callback])
+        // Creates an instance of the item from the instance type.
+        // Merges all the prototypes of all the parent types.
+        Type.prototype.new = function(){
             var type = this; // Ссылка на тип
             
-            // Обработка аргументов
+            // Parse arguments
             var args = [];
             var callback = function(){};
             
@@ -280,46 +301,49 @@
                 if (lodash.isFunction(arguments[1])) callback = arguments[1];
             }
             
-            // Предварительный прототип для item, для обертки общих prototype
             var PreItem = function(){};
             PreItem.prototype = new Item;
             
-            // Получить все наследуемые типы.
+            // All parental types
             var types = this.__findAllTypes();
             
-            // Слить прототипы
+            // Merge prototypes
             for(var t in types.byOrder) {
                 lodash.merge(PreItem.prototype, types.byOrder[t].prototype);
             }
             
-            // Создать экземпляр item
+            // Item isntance
             var item = new PreItem;
             
-            item.__index = Item.__index++; // Уникальный index каждого item
-            item.type = this; // Ссылка на тип данного item
-            item.__behaviors = {}; // exports для поведений
+            item.__index = Item.__index++; // A unique index
+            item.type = this; // Type alias
+            item.__behaviors = {}; // Space for behaviors
             
+            // If there is a designer, call it in the context of the item.
             if (lodash.isFunction(this.constructor)) this.constructor.apply(item, args);
             else if (!lodash.isArray(this.constructor) && lodash.isObject(this.constructor)) {
                 lodash.merge(item, this.constructor);
             }
             
+            // Call the behavior of all types of parenting in the context of the item.
             async.mapSeries(types.byOrder, function(type, next){
                 type.trigger('behaviors', [item, item.__behaviors], next);
+            
+            // Call the event `new` only this type.
             }, function(){
                 type.trigger('new', [args, item, types], function(){
                     if (lodash.isFunction(callback)) callback(item, types);
                 });
             });
             
-            // Вернуть получившийся item
             return item;
         };
         
-        // Наследовать от type новый type.
-        Type.prototype.inherit = function(/* [attributes[, callback]] */){
+        // Function .inherit([[Object args, ]Function callback])
+        // Inherit a new type of this type.
+        Type.prototype.inherit = function(){
             
-            // Обработка аргументов
+            // Parse arguments
             var attributes = {};
             var callback = function(){};
             
@@ -341,7 +365,8 @@
             return type;
         };
         
-        // Описать поведение внутри типа
+        // Function .as(name, behavior[, Object options])
+        // Describes the behavior within the type.
         Type.prototype.as = function(name, behavior, options){
             var options = lodash.isObject(options)? options : {}
             lodash.defaults(options, {
@@ -377,61 +402,43 @@
             return this;
         };
         
-        // Удобный и быстрый способ унаследоваться в новом стиле
-        Type.inherit = function(attributes){
-            return new Type(attributes);
+        // Function .inherit([[Object args, ]Function callback])
+        // Inherit a new type of this type.
+        Type.inherit = function(){
+            return new Type.apply(undefined, arguments);
         };
         
-        // Объект - экземпляр наследующий все от экземпляров Type
-        // Внимание! Создание экземпляра item не через type не корректно
+        // Function .Item()
+        // Not intended for custom build!
+        // Available for the possibility to check the inheritance.
         var Item = blackstone.Item = function(){
             
-            // Должен обладать функционалом событий
+            // Merge with a functional blackstone.Events.
             lodash.extend(this, new Events);
         };
         
-        // Должен обладать функционалом событий
+        // Inherit methods blackstone.Events.
         lodash.extend(Item.prototype, Events.prototype);
         
-        // Возможности псевдо обращения к псевдо классам
+        // A unique index for each item created blackstone.
+        Item.__index = 0;
+        
+        // Function .as(String behavior)
+        // Easy way get behavior.
         Item.prototype.as = function(behavior){
             if (this.__behaviors[behavior]) return this.__behaviors[behavior];
             else return undefined;
         };
         
-        // Наследовать от item новый type.
-        Item.prototype.inherit = function(/* [attributes[, callback]] */){
-            
-            // Обработка аргументов
-            var attributes = {};
-            var callback = function(){};
-            
-            if (lodash.isFunction(arguments[0])) {
-                var callback = arguments[0];
-            } else if (lodash.isObject(arguments[0]) && !lodash.isArray(arguments[0])) {
-                var attributes = arguments[0];
-                if (lodash.isFunction(arguments[1])) callback = arguments[1];
-            }
-            
-            var type = new Type(attributes);
-            
-            type.types.push(this);
-            
-            this.trigger('inherit', [type], function(){
-                callback(type);
-            });
-            
-            return type;
-        };
+        // Object .Document instanceof Type
+        // Type with special abilities inherent in the documents.
+        var Document = blackstone.Document = Type.inherit({
+            constructor: { __document: {} }
+        });
         
-        // Уникальный index каждого item
-        Item.__index = 0;
-        
-        // Тип для работы с документами
-        // Позволяет работать реагировать на события считывания и изменения документа
-        var Document = blackstone.Document = Type.inherit();
-        
-        // Вернуть документ
+        // Function .get([Function callback])
+        // Always returns the document.
+        // If passed argument callback, it will be launched after the events get.
         Document.prototype.get = function(callback){
             var self = this;
             
