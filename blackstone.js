@@ -322,12 +322,6 @@
             item.type = this; // Type alias
             item.__behaviors = {}; // Space for behaviors
             
-            // If there is a designer, call it in the context of the item.
-            if (lodash.isFunction(this.constructor)) this.constructor.apply(item, args);
-            else if (!lodash.isArray(this.constructor) && lodash.isObject(this.constructor)) {
-                lodash.merge(item, this.constructor);
-            }
-            
             async.mapSeries(types.byOrder, function(type, next){
                 
                 // Call constructor of all types.
@@ -529,12 +523,6 @@
             
             return self;
         };
-        
-        var Documents = blackstone.Documents = Type.inherit({
-            constructor: function(){
-                this.documents = [];
-            }
-        });
         
     };
     
