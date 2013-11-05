@@ -262,10 +262,6 @@
             // One type handler
             var core = function(type){
                 if (!results.byIndex[type.__index]) { // If it first handling
-                    
-                    // Mark as handled
-                    results.byOrder.push(type);
-                    results.byIndex[type.__index] = type;
                         
                     // Handle parental types
                     for (var t in type.types) {
@@ -279,6 +275,10 @@
                             }
                         }
                     }
+                    
+                    // Mark as handled
+                    results.byOrder.push(type);
+                    results.byIndex[type.__index] = type;
                 }
             };
             
@@ -328,15 +328,36 @@
                 lodash.merge(item, this.constructor);
             }
             
-            // Call the behavior of all types of parenting in the context of the item.
             async.mapSeries(types.byOrder, function(type, next){
-                type.trigger('behaviors', [item, item.__behaviors], next);
-            
-            // Call the event `new` only this type.
+                
+                // Call constructor of all types.
+                if (lodash.isFunction(type.constructor)) type.constructor.apply(item, args);
+                else if (!lodash.isArray(type.constructor) && lodash.isObject(type.constructor)) {
+                    lodash.merge(item, type.constructor);
+                }
+                
+                next();
+                
             }, function(){
-                type.trigger('new', [args, item, types], function(){
-                    if (lodash.isFunction(callback)) callback(item, types);
+                
+                async.mapSeries(types.byOrder, function(type, next){
+                    
+                    // Call the behavior of all types of parenting in the context of the item.
+                    type.trigger('behaviors', [item, item.__behaviors], next);
+                
+                }, function(){
+                    
+                    async.mapSeries(types.byOrder, function(type, next){
+                        
+                        // Call the event `new` only this type.
+                        type.trigger('new', [args, item, types], next);
+                        
+                    }, function(){
+                        if (lodash.isFunction(callback)) callback(item, types);
+                    });
+                    
                 });
+                
             });
             
             return item;
@@ -508,6 +529,13 @@
             
             return self;
         };
+        
+        var Documents = blackstone.Documents = Type.inherit({
+            constructor: function(){
+                this.documents = [];
+            }
+        });
+        
     };
     
     // Version
