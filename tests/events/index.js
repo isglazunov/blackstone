@@ -33,11 +33,11 @@ describe('blackstone', function(){
                     }, 50);
                 }, {limit: 1});
                 
-                events.bind("action", function(self, next){
+                events.bind("action", function(self){
                     self.unbind();
                     setTimeout(function(){
                         results.push(2);
-                    }, 100);
+                    }, 80);
                 }, {self: true, sync: true});
                 
                 events.bind("action", function(next, number){
@@ -66,7 +66,7 @@ describe('blackstone', function(){
                 setTimeout(function(){
                     results.should.eql(['action', 0, 1, 123, 2, "context", 'again', 'action', 0, undefined, 'done']);
                     done();
-                }, 500);
+                }, 1000);
             });
         });
     });

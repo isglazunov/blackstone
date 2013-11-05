@@ -184,7 +184,10 @@
                     async.nextTick(function(){
                         handler.callback.apply(handler.context, [].concat.apply([], _args));
                     });
-                } else next();
+                } else {
+                    handler.callback.apply(handler.context, [].concat.apply([], _args));
+                    next();
+                }
             }
             
             var coreNext = function(handler){
@@ -233,12 +236,12 @@
             
             // Parental types.
             var types = [];
-            if (lodash.isArray(attributes.types)) types.push.apply(types, attributes.types);
+            if (lodash.isObject(attributes) && lodash.isArray(attributes.types)) types.push.apply(types, attributes.types);
             this.types = types;
             
             // Fake attribute prototype.
             var prototype = {};
-            if (lodash.isObject(attributes.prototype)) lodash.merge(prototype, attributes.prototype);
+            if (lodash.isObject(attributes) && lodash.isObject(attributes.prototype)) lodash.merge(prototype, attributes.prototype);
             this.prototype = prototype;
         };
         
@@ -404,8 +407,8 @@
         
         // Function .inherit([[Object args, ]Function callback])
         // Inherit a new type of this type.
-        Type.inherit = function(){
-            return new Type.apply(undefined, arguments);
+        Type.inherit = function(attributes){
+            return new Type(attributes);
         };
         
         // Function .Item()
