@@ -420,6 +420,18 @@
             return this;
         };
         
+        Type.prototype.instanceof = function(){
+            
+            // All parental types
+            var types = this.__findAllTypes();
+            
+            for (var key in arguments) {
+                if(!types.byIndex[arguments[key].__index]) return false;
+            }
+            
+            return true;
+        };
+        
         // Function .inherit([[Object args, ]Function callback])
         // Inherit a new type of this type.
         Type.inherit = function(attributes){
@@ -446,6 +458,18 @@
         Item.prototype.as = function(behavior){
             if (this.__behaviors[behavior]) return this.__behaviors[behavior];
             else return undefined;
+        };
+        
+        Item.prototype.instanceof = function(){
+            
+            // All parental types
+            var types = this.type.__findAllTypes();
+            
+            for (var key in arguments) {
+                if(!types.byIndex[arguments[key].__index]) return false;
+            }
+            
+            return true;
         };
         
         // Object .Document instanceof Type
