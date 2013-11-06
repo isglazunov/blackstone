@@ -19,7 +19,7 @@
         // Version
         blackstone.version = 'develop';
         
-        // Function .Events()
+        // .Events()
         // System of events.
         var Events = blackstone.Events = function(){
             
@@ -36,7 +36,7 @@
         Events.__index = 0;
         // The system variable. Use with understanding.
         
-        // Function .Events.unbind(Object events, String name, Object handler)
+        // .Events.unbind(Object events, String name, Object handler)
         // The withdrawal of the handler chain of handlers.
         Events.unbind = function(self, name, handler){
             if(!handler.prev) { // first
@@ -60,28 +60,28 @@
             }
         };
         
-        // Function .Events.Self(Object events, String name, Object handler)
+        // .Events.Self(Object events, String name, Object handler)
         // The constructor of the object `self`.
         Events.Self = function(events, name, handler){
             
-            // Number .index
+            // .index
             this.index = handler.index;
             
-            // Function .limit()
+            // .limit()
             // Returns the current limit call handlers.
             this.limit = function(limit){
                 if (lodash.isNumber(limit) || lodash.isNull(limit)) handler.limit = limit;
                 return handler.limit;
             }
             
-            // Function .unbind()
+            // .unbind()
             // Detach this handler.
             this.unbind = function(){
                 Events.unbind(events, name, handler);
             }
         };
         
-        // Function .bind(String name, Function callback[, Object options])
+        // .bind(String name, Function callback[, Object options])
         // Set the handler to the handler chain.
         Events.prototype.bind = function(name, callback, options){
             var options = lodash.isObject(options)? options : {}
@@ -116,7 +116,7 @@
             return this;
         };
         
-        // Function .unbind([Object query])
+        // .unbind([Object query])
         // Removes handlers of the handler chain as per request.
         Events.prototype.unbind = function(query){
             var self = this;
@@ -161,7 +161,7 @@
             }
         };
         
-        // Function .trigger(String name[, Array args[, Function callback]]) or .trigger(String name[, Function callback])
+        // .trigger(String name[, Array args[, Function callback]]) or .trigger(String name[, Function callback])
         // Trigger all event handlers by name.
         Events.prototype.trigger = function(name){
             var self = this;
@@ -220,7 +220,7 @@
             }
         };
         
-        // Function .Type([Object attributes])
+        // .Type([Object attributes])
         // Returns the object which received type behavior.
         // The resulting type is used for the assembly item.
         var Type = blackstone.Type = function(attributes){
@@ -287,7 +287,7 @@
             return results;
         };
         
-        // Function .new([[Array args, ]Function callback])
+        // .new([[Array args, ]Function callback])
         // Creates an instance of the item from the instance type.
         // Merges all the prototypes of all the parent types.
         Type.prototype.new = function(){
@@ -357,7 +357,7 @@
             return item;
         };
         
-        // Function .inherit([[Object args, ]Function callback])
+        // .inherit([[Object args, ]Function callback])
         // Inherit a new type of this type.
         Type.prototype.inherit = function(){
             
@@ -383,7 +383,7 @@
             return type;
         };
         
-        // Function .as(name, behavior[, Object options])
+        // .as(name, behavior[, Object options])
         // Describes the behavior within the type.
         Type.prototype.as = function(name, behavior, options){
             var options = lodash.isObject(options)? options : {}
@@ -420,6 +420,8 @@
             return this;
         };
         
+        // .instanceof(Type, Type, Type...)
+        // Check chain types.
         Type.prototype.instanceof = function(){
             
             // All parental types
@@ -432,13 +434,13 @@
             return true;
         };
         
-        // Function .inherit([[Object args, ]Function callback])
+        // .inherit([[Object args, ]Function callback])
         // Inherit a new type of this type.
         Type.inherit = function(attributes){
             return new Type(attributes);
         };
         
-        // Function .Item()
+        // .Item()
         // Not intended for custom build!
         // Available for the possibility to check the inheritance.
         var Item = blackstone.Item = function(){
@@ -453,13 +455,15 @@
         // A unique index for each item created blackstone.
         Item.__index = 0;
         
-        // Function .as(String behavior)
+        // .as(String behavior)
         // Easy way get behavior.
         Item.prototype.as = function(behavior){
             if (this.__behaviors[behavior]) return this.__behaviors[behavior];
             else return undefined;
         };
         
+        // .instanceof(Type, Type, Type...)
+        // Check chain types.
         Item.prototype.instanceof = function(){
             
             // All parental types
@@ -472,13 +476,13 @@
             return true;
         };
         
-        // Object .Document instanceof Type
+        // .Document instanceof Type
         // Type with special abilities inherent in the documents.
         var Document = blackstone.Document = Type.inherit({
             constructor: { __document: {} }
         });
         
-        // Function .get([Function callback])
+        // .get([Function callback])
         // Always returns the document.
         // If passed argument callback, it will be launched after the events get.
         Document.prototype.get = function(callback){
@@ -491,14 +495,14 @@
             return self.__document;
         };
         
-        // Слить данные с документом
+        // .set(Object data, [Function callback])
+        // Merge the argument `data` and `.__document`.
         Document.prototype.set = function(data, callback){
             var self = this;
             
-            // Строгая типизация
             if(!lodash.isObject(data) && lodash.isArray(data) && lodash.isFunction(data)) throw new TypeError('wrong data argument');
-            var prev = lodash.cloneDeep(self.__document); // Предыдущее состояние
-            lodash.merge(self.__document, data); // Слить данные с документом
+            var prev = lodash.cloneDeep(self.__document);
+            lodash.merge(self.__document, data);
             
             self.trigger('set', [lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data)], function(){
                 if(lodash.isFunction(callback)) callback(lodash.cloneDeep(self.__document), prev, lodash.cloneDeep(data));
@@ -507,8 +511,8 @@
             return self;
         };
         
-        // document.reset(Object data[, Function callback]);
-        // document.reset({}, function(){ /* after events */ }).get().attr
+        // .reset(Object data[, Function callback]);
+        // Replaces the old `.__document` on a new argument `data`.
         Document.prototype.reset = function(data, callback){
             var self = this;
             
@@ -528,8 +532,8 @@
             return self;
         };
     
-        // document.unset([Function callback]);
-        // document.unset(function(){ /* after events */ }).get() // {}
+        // .unset([Function callback]);
+        // Replaces the old `.__document` on a `{}`.
         Document.prototype.unset = function(callback){
             var self = this;
             var prev = lodash.clone(self.__document);

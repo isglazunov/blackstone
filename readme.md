@@ -35,9 +35,9 @@ global.Blackstone(lodash, async);
 > Uses the prefix __ to indicate the system variables.
 > Use the system variables with the understanding!
 
-## String .version = 'develop'
+## .version = 'develop'
 
-## Function .Events()
+## .Events()
 System of events.
 ```js
 var events = new blackstone.Events;
@@ -54,31 +54,31 @@ events.__eventsAll = '*'; // The event name is called when any event.
 events.__events = {}; // An object with reference to the first handler for each event.
 ```
 
-### Number .Events.__index = 0
+### .Events.__index = 0
 > The system variable. Use with understanding.
 
 A unique index for each event handler created blackstone.
 
-### Function .Events.unbind(Object events, String name, Object handler)
+### .Events.unbind(Object events, String name, Object handler)
 The withdrawal of the handler chain of handlers.
 
-### Function .Events.Self(Object events, String name, Object handler)
+### .Events.Self(Object events, String name, Object handler)
 The constructor of the object `self`.
 
-#### Number .index
+#### .index
 
-#### Function .limit()
+#### .limit()
 Returns the current limit call handlers.
 
-#### Function .limit(limit)
+#### .limit(limit)
 Sets a new limit handler and returns it.
 
-#### Function .unbind()
+#### .unbind()
 Detach this handler.
 
 ### Object events instanceof .Events
 
-#### Function .bind(String name, Function callback[, Object options])
+#### .bind(String name, Function callback[, Object options])
 Set the handler to the handler chain.
 
 ##### Default options
@@ -89,7 +89,7 @@ self: events.__eventsSelf,
 limit: events.__eventsLimit
 ```
 
-#### Function .unbind([Object query])
+#### .unbind([Object query])
 Removes handlers of the handler chain as per request.
 
 ##### Default options
@@ -106,29 +106,29 @@ limit: lodash.isNull(query.limit) || lodash.isNumber(query.limit)? query.limit :
 * If you pass only the name of the event, will remove all handlers for this event.
 * The remaining options specify the search.
 
-#### Function .trigger(String name[, Array args[, Function callback]]) or .trigger(String name[, Function callback])
+#### .trigger(String name[, Array args[, Function callback]]) or .trigger(String name[, Function callback])
 Trigger all event handlers by name.
 
 Function `callback` will be called after all the event handlers.
 
-## Function .Type([Object attributes])
+## .Type([Object attributes])
 Returns the object which received type behavior.
 
 The resulting type is used for the assembly item.
 
 Inherit behavior blackstone.Events.
 
-### Function .Type.inherit([[Object args, ]Function callback])
+### .Type.inherit([[Object args, ]Function callback])
 Inherit a new type of this type.
 
-### Number .Type.__index = 0
+### .Type.__index = 0
 > The system variable. Use with understanding.
 
 A unique index for each type created blackstone.
 
 ### Object type instanceof .Type
 
-#### Function .__findAllTypes()
+#### .__findAllTypes()
 > The system variable. Use with understanding.
 
 Created to find all types of parenting including the source.
@@ -143,7 +143,7 @@ Returns an object of the search results.
 }
 ```
 
-#### Function .new([[Array args, ]Function callback])
+#### .new([[Array args, ]Function callback])
 Creates an instance of the item from the instance type.
 
 Merges all the prototypes of all the parent types.
@@ -162,54 +162,60 @@ Call the event `new` only this type.
 
 The callback function will be called when the operation of all handlers.
 
-#### Function .inherit([[Object args, ]Function callback])
+#### .instanceof(Type, Type, Type...)
+Check chain types.
+
+#### .inherit([[Object args, ]Function callback])
 Inherit a new type of this type.
 
 Call the event `inherit` only this type.
 
-#### Function .as(name, behavior[, Object options])
+#### .as(name, behavior[, Object options])
 Describes the behavior within the type.
 
-## Function .Item()
+## .Item()
 Not intended for custom build!
 
 Available for the possibility to check the inheritance.
 
-### Number .Item.__index = 0
+### .Item.__index = 0
 A unique index for each type created blackstone.
 
 > The system variable. Use with understanding.
 
 ### Object item instanceof .Item
 
-#### Function .as(String behavior)
+#### .as(String behavior)
 Easy way get behavior.
 
-## Object .Document instanceof Type
+#### .instanceof(Type, Type, Type...)
+Check chain types.
+
+## .Document instanceof Type
 Type with special abilities inherent in the documents.
 
 ### document of blackstone.Document
 
-### Function .get([Function callback])
+### .get([Function callback])
 Always returns the document.
 
 If passed argument callback, it will be launched after the event `get`.
 
-### Function .set(Object data, [Function callback])
+### .set(Object data, [Function callback])
 Always returns the item of document.
 
 Merge the argument `data` and `.__document`.
 
 If passed argument callback, it will be launched after the event `set`.
 
-### Function .reset(Object data, [Function callback])
+### .reset(Object data, [Function callback])
 Always returns the item of document.
 
 Replaces the old `.__document` on a new argument `data`.
 
 If passed argument callback, it will be launched after the events `set` and `reset`.
 
-### Function .unset([Function callback])
+### .unset([Function callback])
 Always returns the item of document.
 
 Replaces the old `.__document` on a `{}`.
