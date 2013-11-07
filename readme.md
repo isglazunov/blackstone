@@ -112,10 +112,10 @@ The resulting type is used for the assembly item.
 
 Inherit behavior blackstone.Events.
 
-### .Type.inherit([[Object args, ]Function callback])
+### .inherit([[Object args, ]Function callback])
 Inherit a new type of this type.
 
-### .Type.__index = 0
+### .__index = 0
 > The system variable. Use with understanding.
 
 A unique index for each type created blackstone.
