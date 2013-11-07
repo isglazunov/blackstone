@@ -228,6 +228,9 @@
             // A unique index for each type.
             this.__index = Type.__index++;
             
+            // Exists status.
+            this.__deleted = false;
+            
             // Merge with a functional blackstone.Events.
             lodash.extend(this, new Events);
             
@@ -243,6 +246,9 @@
             var prototype = {};
             if (lodash.isObject(attributes) && lodash.isObject(attributes.prototype)) lodash.merge(prototype, attributes.prototype);
             this.prototype = prototype;
+            
+            // Add to all types
+            Type.types[this.__index] = this;
         };
         
         // Inherit methods blackstone.Events.
@@ -250,6 +256,9 @@
         
         // A unique index for each type created blackstone.
         Type.__index = 0;
+        
+        // All types
+        Type.types = {};
         
         // Created to find all types of parenting including the source.
         Type.prototype.__findAllTypes = function(){
@@ -319,39 +328,32 @@
             var item = new PreItem;
             
             item.__index = Item.__index++; // A unique index
+            item.__deleted = false; // Exists status
             item.type = this; // Type alias
             item.__behaviors = {}; // Space for behaviors
             
-            async.mapSeries(types.byOrder, function(type, next){
-                
-                // Call constructor of all types.
-                if (lodash.isFunction(type.constructor)) type.constructor.apply(item, args);
-                else if (!lodash.isArray(type.constructor) && lodash.isObject(type.constructor)) {
-                    lodash.merge(item, type.constructor);
-                }
-                
-                next();
-                
-            }, function(){
-                
-                async.mapSeries(types.byOrder, function(type, next){
-                    
-                    // Call the behavior of all types of parenting in the context of the item.
-                    type.trigger('behaviors', [item, item.__behaviors], next);
-                
-                }, function(){
-                    
+            // Add to all items
+            Item.items[item.__index] = item;
+            
+            async.series([
+                function(next){
                     async.mapSeries(types.byOrder, function(type, next){
-                        
-                        // Call the event `new` only this type.
+                        if (lodash.isFunction(type.constructor)) type.constructor.apply(item, args);
+                        else if (!lodash.isArray(type.constructor) && lodash.isObject(type.constructor))
+                            lodash.merge(item, type.constructor);
+                        next();
+                    }, next);
+                }, function(next){
+                    async.mapSeries(types.byOrder, function(type, next){
+                        type.trigger('behaviors', [item, item.__behaviors], next);
+                    }, next);
+                }, function(next){
+                    async.mapSeries(types.byOrder, function(type, next){
                         type.trigger('new', [args, item, types], next);
-                        
-                    }, function(){
-                        if (lodash.isFunction(callback)) callback(item, types);
-                    });
-                    
-                });
-                
+                    }, next);
+                }
+            ], function(){
+                if (lodash.isFunction(callback)) callback(item, types);
             });
             
             return item;
@@ -434,6 +436,17 @@
             return true;
         };
         
+        Type.prototype.destroy = function(callback){
+            this.__deleted = true;
+            delete Type.types[this.__index];
+            this.trigger('destroy', [], callback);
+            return this;
+        };
+        
+        Type.prototype.exists = function(){
+            return !this.__deleted;
+        };
+        
         // .inherit([[Object args, ]Function callback])
         // Inherit a new type of this type.
         Type.inherit = function(attributes){
@@ -455,6 +468,9 @@
         // A unique index for each item created blackstone.
         Item.__index = 0;
         
+        // All items.
+        Item.items = {};
+        
         // .as(String behavior)
         // Easy way get behavior.
         Item.prototype.as = function(behavior){
@@ -474,6 +490,23 @@
             }
             
             return true;
+        };
+        
+        Item.prototype.destroy = function(callback){
+            this.__deleted = true;
+            delete Item.items[this.__index];
+            this.trigger('destroy', [], callback);
+            return this;
+        };
+        
+        Item.prototype.exists = function(){
+            return !this.__deleted;
+        };
+        
+        // .inherit([[Object args, ]Function callback])
+        // Inherit a new item of this item.
+        Item.inherit = function(attributes){
+            return new Item(attributes);
         };
         
         // .Document instanceof Type
