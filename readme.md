@@ -1,12 +1,5 @@
 # blackstone
 
-* [blackstone](#blackstone)
-    * [API](#api)
-    * [Events](#events-1)
-        * [.__index](#vents__index--0)
-        * [.unbind](#unbindobject-events-string-name-object-handler)
-        * [.Self](#selfobject-events-string-name-object-handler)
-
 # Usage
 
 ## Install
