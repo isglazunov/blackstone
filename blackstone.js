@@ -36,7 +36,7 @@
         Events.__index = 0;
         // The system variable. Use with understanding.
         
-        // .Events.unbind(Object events, String name, Object handler)
+        // .unbind(Object events, String name, Object handler)
         // The withdrawal of the handler chain of handlers.
         Events.unbind = function(self, name, handler){
             if(!handler.prev) { // first
@@ -60,7 +60,7 @@
             }
         };
         
-        // .Events.Self(Object events, String name, Object handler)
+        // .Self(Object events, String name, Object handler)
         // The constructor of the object `self`.
         Events.Self = function(events, name, handler){
             
@@ -436,6 +436,8 @@
             return true;
         };
         
+        // .destroy([Function callback])
+        // Marks the type as destroyed. Not to be used.
         Type.prototype.destroy = function(callback){
             this.__deleted = true;
             delete Type.types[this.__index];
@@ -443,6 +445,8 @@
             return this;
         };
         
+        // .exists()
+        // Checks whether the type is destroyed.
         Type.prototype.exists = function(){
             return !this.__deleted;
         };
@@ -492,6 +496,8 @@
             return true;
         };
         
+        // .destroy([Function callback])
+        // Marks the item as destroyed. Not to be used.
         Item.prototype.destroy = function(callback){
             this.__deleted = true;
             delete Item.items[this.__index];
@@ -499,6 +505,8 @@
             return this;
         };
         
+        // .exists()
+        // Checks whether the item is destroyed.
         Item.prototype.exists = function(){
             return !this.__deleted;
         };
