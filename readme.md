@@ -1,5 +1,12 @@
 # blackstone
 
+* [blackstone](#blackstone)
+    * [API](#api)
+    * [Events](#events-1)
+        * [.__index](#vents__index--0)
+        * [.unbind](#unbindobject-events-string-name-object-handler)
+        * [.Self](#selfobject-events-string-name-object-handler)
+
 # Usage
 
 ## Install
@@ -25,12 +32,6 @@ window.Blackstone(lodash, async);
 global.Blackstone(lodash, async);
 ```
 
-## Events
-
-## Types and tems
-
-## Document and collections
-
 # API
 > Uses the prefix __ to indicate the system variables.
 > Use the system variables with the understanding!
@@ -54,15 +55,15 @@ events.__eventsAll = '*'; // The event name is called when any event.
 events.__events = {}; // An object with reference to the first handler for each event.
 ```
 
-### .Events.__index = 0
+### .__index = 0
 > The system variable. Use with understanding.
 
 A unique index for each event handler created blackstone.
 
-### .Events.unbind(Object events, String name, Object handler)
+### .unbind(Object events, String name, Object handler)
 The withdrawal of the handler chain of handlers.
 
-### .Events.Self(Object events, String name, Object handler)
+### .Self(Object events, String name, Object handler)
 The constructor of the object `self`.
 
 #### .index
