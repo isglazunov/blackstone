@@ -1,9 +1,11 @@
-// blackstone:develop
-// https://github.com/isglazunov/blackstone/tree/develop
+// blackstone:0.0.1
+// https://github.com/isglazunov/blackstone/tree/0.0.1
 // Uses the prefix __ to indicate the system variables. Use the system variables with the understanding!
 
 // Module
 (function(){
+    
+    var __version = '0.0.1';
     
     // Constructor
     var Blackstone = function(lodash, async){
@@ -17,7 +19,7 @@
         };
         
         // Version
-        blackstone.version = 'develop';
+        blackstone.version = __version;
         
         // .Events()
         // System of events.
@@ -596,7 +598,7 @@
     };
     
     // Version
-    Blackstone.version = 'develop';
+    Blackstone.version = __version;
     
     // Connector
     // Library has no control over the version dependencies
