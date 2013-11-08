@@ -22,19 +22,19 @@
     var Blackstone = function(lodash, async) {
         var blackstone = this;
         
-        // new blackstone.Blackstone(lodash, async)
+        // new .Blackstone(lodash, async)
         blackstone.Blackstone = Blackstone;
         
-        // blackstone.dependencies
+        // .dependencies Object
         blackstone.dependencies = {
             lodash: lodash, async: async
         };
         
-        // blackstone.version
+        // .version String
         blackstone.version = __version;
     };
     
-    // Blackstone.version
+    // Blackstone.version String
     Blackstone.version = __version;
     
     // Blackstone Connector
