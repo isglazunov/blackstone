@@ -400,7 +400,7 @@
                 type.bind('behaviors', function(){
                     
                     var args = lodash.toArray(arguments);
-                    var last = args.splice(args.length - 1, 1)[0];
+                    var last = args.pop();
                     
                     if (!lodash.isObject(last[name])) last[name] = {};
                     
@@ -412,7 +412,7 @@
                     // self, item, type // next, item, type
                     else if ( (options.sync && options.self) || (!options.sync && !options.self) ) var item = args[1];
                     
-                    // self, nexxt, item, type
+                    // self, next, item, type
                     else var item = args[2];
                     
                     behavior.apply(item, args);
