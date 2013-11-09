@@ -33,8 +33,7 @@
         // .version String
         blackstone.version = __version;
         
-        // Blackstone Lists // start
-        
+        // Blackstone Lists
         blackstone.lists = (function() {
             
             var lists = {};
@@ -287,7 +286,6 @@
             
         })();
         
-        // Blackstone Lists // end
     };
     
     // Blackstone.version String
