@@ -579,172 +579,48 @@
             
             typing.Item = (function() {
                 
-                // X
+                // X // type.new
                 var Item = function() {};
-                
-                Item._prototype = {};
-                
-                // (types... Type)
-                // => Boolean
-                Item._prototype.of = function() {
-                    
-                    var types = this.__type.__types();
-                    
-                    for (var a in arguments) {
-                        var found = false;
-                        
-                        for (var p in types.byOrder) {
-                            if (types.byOrder[p].id == arguments[a].id) found = true;
-                        }
-                        
-                        if (!found) return false;
-                    }
-                    
-                    return true;
-                    
-                };
                 
                 return Item;
                 
             })();
             
-            typing.Prototypes = (function() {
+            typing.Type = (function(Item) {
                 
-                // ()
-                var Types = function() {
-                    this.list = new lists.List;
-                };
-                
-                // (types... Type)
-                Types.prototype.include = function() {
-                    
-                    var args = [];
-                    
-                    for (var a in arguments) {
-                        args.push(arguments[a].superposition);
-                    }
-                    
-                    this.list.append.apply(this.list, args);
-                    
-                };
-                
-                // (types... Type)
-                Types.prototype.exclude = function() {
-                    
-                    var args = [];
-                    
-                    for (var a in arguments) {
-                        args.push(arguments[a].superposition);
-                    }
-                    
-                    this.list.remove.apply(this.list, args);
-                    
-                };
-                
-                // (handler Function⎨, options Object⎬)
-                Types.prototype.each = function(handler, options) {
-                    
-                    if (options.sync) {
-                        var handling = function(counter, superposition) {
-                            if (superposition) handler(superposition.value);
-                            else handler();
-                        };
-                    } else {
-                        var handling = function(next, counter, superposition) {
-                            if (superposition) handler(next, superposition.value);
-                            else handler();
-                        };
-                    }
-                    
-                    this.list.each(handling, options);
-                    
-                };
-                
-                return Types;
-                
-            })();
-            
-            typing.Type = (function(Prototypes, Item) {
-                
-                var id = 0;
-                
-                // X
+                // X // Type.inherit
                 var Type = function() {
-                    this.id = id++;
                     this.prototype = {};
                     this.constructor = undefined;
-                    this.inheritor = undefined;
-                    this.prototypes = new Prototypes;
-                    
-                    var superposition = new lists.Superposition;
-                    superposition.value = this;
-                    
-                    this.superposition = superposition;
-                };
-                
-                // (results { byId Object, byOrder Array }, from Type)
-                var __types = function(results, from) {
-                    if (!results.byId[from.id]) {
-                        
-                        from.types.each(function(type) {
-                            if (type) __types(results, type);
-                        }, { sync: true });
-                        
-                        results.byId[from.id] = from;
-                        results.byOrder.push(from);
-                    }
-                };
-                
-                Type._prototype = {};
-                
-                // ()
-                // => { byId: { id: Type } , byOrder [ older < Type > younger ] }
-                Type._prototype.__types = function() {
-                    
-                    var results = {
-                        byId: {},
-                        byOrder: []
-                    };
-                    
-                    __types(results, this);
-                    
-                    return results;
-                    
                 };
                 
                 // (attr Array⎨, callback.apply(item, attr) Function⎬)
                 // => item Item
-                Type._prototype.new = function(attr, callback) {
+                // 'new' (attr...)
+                Type.prototype.new = function(attr, callback) {
                     
-                    var types = this.__types();
+                    var type = this;
                     
-                    // prototypes
-                    Item.prototype = new events.Emitter;
+                    // prototype
+                    var Prototype = function() {};
                     
-                    lodash.extend(Item.prototype, Item._prototype);
+                    Prototype.prototype = new Item;
                     
-                    var _Item = function() {};
-                    _Item.prototype = new Item;
+                    lodash.extend(Prototype.prototype, new events.Emitter);
+                    lodash.extend(Prototype.prototype, events.Emitter.prototype);
                     
-                    _Item.prototype.__type = this;
-                    _Item.prototype.__types = types;
+                    lodash.extend(Prototype.prototype, type.prototype);
                     
-                    for (var p in types.byOrder) {
-                        lodash.merge(_Item.prototype, types.byOrder[p].prototype);
-                    }
+                    Prototype.prototype.__type = type;
                     
                     // constructor
-                    var item = new _Item;
+                    var item = new Prototype;
                     
-                    this.constructor.call(item, attr, item, item.__type, item.__types);
+                    if (lodash.isFunction(this.constructor)) this.constructor.call(item, attr, item, item.__type);
                     
                     // events
                     async.nextTick(function() {
-                        async.mapSeries(types.byOrder, function(prototype, next) {
-                            prototype.trigger('new', attr, next);
-                        }, function() {
-                            if (callback) callback.apply(item, attr);
-                        });
+                        type.trigger('new', attr, callback);
                     });
                     
                     return item;
@@ -752,10 +628,8 @@
                 
                 // ()
                 // => type Type
-                Type._prototype.inherit = function() {
-                    var type = new Type;
-                    
-                    type.prototypes.include(this);
+                Type.prototype.inherit = function() {
+                    var type = Type.inherit();
                     
                     return type;
                 };
@@ -763,18 +637,22 @@
                 // ()
                 // => type Type
                 Type.inherit = function() {
-                    Type.prototype = new events.Emitter;
                     
-                    lodash.extend(Type.prototype, Type._prototype);
+                    var Prototype = function() {};
                     
-                    var type = new Type;
+                    Prototype.prototype = new Type;
+                    
+                    lodash.extend(Prototype.prototype, new events.Emitter);
+                    lodash.extend(Prototype.prototype, events.Emitter.prototype);
+                    
+                    var type = new Prototype;
                     
                     return type;
                 };
                 
                 return Type;
                 
-            })(typing.Prototypes, typing.Item);
+            })(typing.Item);
             
             return typing;
             
