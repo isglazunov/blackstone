@@ -608,7 +608,7 @@
                 
             })();
             
-            typing.Types = (function() {
+            typing.Prototypes = (function() {
                 
                 // ()
                 var Types = function() {
@@ -664,7 +664,7 @@
                 
             })();
             
-            typing.Type = (function(Types, Item) {
+            typing.Type = (function(Prototypes, Item) {
                 
                 var id = 0;
                 
@@ -673,7 +673,8 @@
                     this.id = id++;
                     this.prototype = {};
                     this.constructor = undefined;
-                    this.types = new Types;
+                    this.inheritor = undefined;
+                    this.prototypes = new Prototypes;
                     
                     var superposition = new lists.Superposition;
                     superposition.value = this;
@@ -735,9 +736,7 @@
                     // constructor
                     var item = new _Item;
                     
-                    for (var p in types.byOrder) {
-                        if(lodash.isFunction(types.byOrder[p].constructor)) types.byOrder[p].constructor.call(item, attr, item, item.__type, item.__types);
-                    }
+                    this.constructor.call(item, attr, item, item.__type, item.__types);
                     
                     // events
                     async.nextTick(function() {
@@ -756,7 +755,7 @@
                 Type._prototype.inherit = function() {
                     var type = new Type;
                     
-                    type.types.include(this);
+                    type.prototypes.include(this);
                     
                     return type;
                 };
@@ -775,7 +774,7 @@
                 
                 return Type;
                 
-            })(typing.Types, typing.Item);
+            })(typing.Prototypes, typing.Item);
             
             return typing;
             
