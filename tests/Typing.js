@@ -23,7 +23,7 @@ describe('Blackstone Typing', function() {
         
     });
     
-    it('prototypes with item', function() {
+    it('include item', function() {
         
         var A = Type.inherit();
         
@@ -53,7 +53,7 @@ describe('Blackstone Typing', function() {
         
     });
     
-    it('prototypes with nested items', function() {
+    it('nested include item', function() {
         
         var A = Type.inherit();
         
@@ -107,7 +107,7 @@ describe('Blackstone Typing', function() {
         
     });
     
-    it('prototypes with nested items and types', function() {
+    it('nested include items and types', function() {
         
         var A = Type.inherit();
         
@@ -157,6 +157,57 @@ describe('Blackstone Typing', function() {
         
         b.__c.should.be.true;
         b._c.should.be.true;
+        
+    });
+    
+    it('item of', function() {
+        
+        var A = Type.inherit();
+        
+        A.prototype.__a = true;
+        
+        A.constructor = function(arg) {
+            this._a = arg;
+        };
+        
+        var C = Type.inherit();
+        
+        C.prototype.__c = true;
+        
+        C.constructor = function(arg) {
+            this._c = arg;
+        };
+        
+        var c = C.new(true);
+        
+        var D = Type.inherit();
+        
+        D.prototype.__d = false;
+        
+        D.constructor = function(arg) {
+            this._d = arg;
+        };
+        
+        D.prototypes.include(c);
+        
+        var d = D.new(false);
+        
+        var B = Type.inherit();
+        
+        B.prototype.__b = false;
+        
+        B.constructor = function(arg) {
+            this._b = arg;
+        };
+        
+        B.prototypes.include(A, d);
+        
+        var b = B.new(false);
+        
+        b.of(A, D).should.be.true;
+        d.of(B).should.be.false;
+        c.of(A, B, C, D).should.be.false;
+        b.of(A, B, C, D).should.be.true;
         
     });
     

@@ -582,6 +582,28 @@
                 // X // type.new
                 var Item = function() {};
                 
+                // (types... Type)
+                // => Boolean
+                Item.prototype.of = function() {
+                    
+                    var prototypes = this.__type.__prototypes();
+                    
+                    for (var a in arguments) {
+                        var found = false;
+                        
+                        for (var p in prototypes.all) {
+                            if (prototypes.all[p] instanceof typing.Type) {
+                                if (prototypes.all[p].id == arguments[a].id) found = true;
+                            }
+                        }
+                        
+                        if (!found) return false;
+                    }
+                    
+                    return true;
+                    
+                };
+                
                 return Item;
                 
             })();
@@ -605,21 +627,6 @@
                     }
                     
                     this.list.append.apply(this.list, args);
-                    
-                };
-                
-                // (prototypes... Item)
-                Prototypes.prototype.exclude = function() {
-                    
-                    var args = [];
-                    
-                    for (var a in arguments) {
-                        if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
-                            args.push(arguments[a].__superprototype);
-                        }
-                    }
-                    
-                    this.list.remove.apply(this.list, args);
                     
                 };
                 
