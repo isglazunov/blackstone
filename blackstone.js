@@ -586,20 +586,126 @@
                 
             })();
             
-            typing.Type = (function(Item) {
+            typing.Prototypes = (function(typing) {
+                
+                // ()
+                var Prototypes = function() {
+                    this.list = new lists.List;
+                };
+                
+                // (prototypes... Item)
+                Prototypes.prototype.include = function() {
+                    
+                    var args = [];
+                    
+                    for (var a in arguments) {
+                        if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
+                            args.push(arguments[a].__superprototype);
+                        }
+                    }
+                    
+                    this.list.append.apply(this.list, args);
+                    
+                };
+                
+                // (prototypes... Item)
+                Prototypes.prototype.exclude = function() {
+                    
+                    var args = [];
+                    
+                    for (var a in arguments) {
+                        if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
+                            args.push(arguments[a].__superprototype);
+                        }
+                    }
+                    
+                    this.list.remove.apply(this.list, args);
+                    
+                };
+                
+                // (handler Function⎨, options Object⎬)
+                Prototypes.prototype.each = function(handler, options) {
+                    
+                    if (options.sync) {
+                        var handling = function(counter, superposition) {
+                            if (superposition) handler(superposition.value);
+                            else handler();
+                        };
+                    } else {
+                        var handling = function(next, counter, superposition) {
+                            if (superposition) handler(next, superposition.value);
+                            else handler();
+                        };
+                    }
+                    
+                    this.list.each(handling, options);
+                    
+                };
+                
+                return Prototypes;
+                
+            })(typing);
+            
+            typing.Type = (function(Item, Prototypes) {
+                
+                var id = 0;
                 
                 // X // Type.inherit
                 var Type = function() {
+                    this.id = id++;
+                    
                     this.prototype = {};
                     this.constructor = undefined;
+                    
+                    this.prototypes = new Prototypes
+                };
+                
+                // (results { all: [Item, Type] }, now Item/Type)
+                var __prototypes = function(results, now) {
+                    
+                    if (now instanceof Item) {
+                        __prototypes(results, now.__type);
+                        
+                        results.all.push(now);
+                        
+                    } else if (now instanceof Type) {
+                        
+                        if (!results.types[now.id]) {
+                            results.types[now.id] = now;
+                            
+                            now.prototypes.each(function(prototype) {
+                                if (prototype) __prototypes(results, prototype);
+                            }, { sync: true })
+                            
+                            results.all.push(now);
+                        }
+                    }
+                    
+                };
+                
+                // ()
+                // => { all: [Item, Type], types: { id: Type } }
+                Type.prototype.__prototypes = function() {
+                    
+                    var results = {
+                        all: [], types: {}
+                    }
+                    
+                    __prototypes(results, this);
+                    
+                    return results;
+                    
                 };
                 
                 // (attr Array⎨, callback.apply(item, attr) Function⎬)
                 // => item Item
                 // 'new' (attr...)
+                // .constructor.apply(item, attr, item, item.__type);
                 Type.prototype.new = function(attr, callback) {
                     
                     var type = this;
+                    
+                    var prototypes = type.__prototypes();
                     
                     // prototype
                     var Prototype = function() {};
@@ -611,10 +717,29 @@
                     
                     lodash.extend(Prototype.prototype, type.prototype);
                     
+                    for (var p in prototypes.all) {
+                        if (prototypes.all[p] instanceof Item) {
+                            lodash.extend(Prototype.prototype, prototypes.all[p]);
+                        } else if (prototypes.all[p] instanceof Type) {
+                            lodash.extend(Prototype.prototype, prototypes.all[p].prototype)
+                        }
+                    }
+                    
+                    // Hidden varibles
+                    
                     Prototype.prototype.__type = type;
+                    
+                    // superposition
+                    var superprototype = new lists.Superposition;
+                    
+                    // superposition to prototype
+                    Prototype.prototype.__superprototype = superprototype;
                     
                     // constructor
                     var item = new Prototype;
+                    
+                    // prototype to superposition
+                    superprototype.value = item;
                     
                     if (lodash.isFunction(this.constructor)) this.constructor.call(item, attr, item, item.__type);
                     
@@ -645,14 +770,25 @@
                     lodash.extend(Prototype.prototype, new events.Emitter);
                     lodash.extend(Prototype.prototype, events.Emitter.prototype);
                     
+                    // Hidden varibles
+                    
+                    // superposition
+                    var superprototype = new lists.Superposition;
+                    
+                    // superposition to prototype
+                    Prototype.prototype.__superprototype = superprototype;
+                    
                     var type = new Prototype;
+                    
+                    // prototype to superposition
+                    superprototype.value = type;
                     
                     return type;
                 };
                 
                 return Type;
                 
-            })(typing.Item);
+            })(typing.Item, typing.Prototypes);
             
             return typing;
             
