@@ -726,6 +726,7 @@
                     _Item.prototype = new Item;
                     
                     _Item.prototype.__type = this;
+                    _Item.prototype.__types = types;
                     
                     for (var p in types.byOrder) {
                         lodash.merge(_Item.prototype, types.byOrder[p].prototype);
@@ -735,7 +736,7 @@
                     var item = new _Item;
                     
                     for (var p in types.byOrder) {
-                        if(lodash.isFunction(types.byOrder[p].constructor)) types.byOrder[p].constructor.apply(item, attr);
+                        if(lodash.isFunction(types.byOrder[p].constructor)) types.byOrder[p].constructor.call(item, attr, item, item.__type, item.__types);
                     }
                     
                     // events
