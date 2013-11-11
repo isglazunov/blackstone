@@ -280,9 +280,11 @@
                 // Safe // start
                 // ()
                 Position.prototype.remove = function() {
-                    this.list.__remove(this);
-                    this.__remove();
-                    this.exists = false;
+                    if (this.exists) {
+                        this.list.__remove(this);
+                        this.__remove();
+                        this.exists = false;
+                    }
                 };
                 
                 // (superpositions... Superposition)
@@ -627,6 +629,21 @@
                     }
                     
                     this.list.append.apply(this.list, args);
+                    
+                };
+                
+                // (prototypes... Item)
+                Prototypes.prototype.exclude = function() {
+                    
+                    var args = [];
+                    
+                    for (var a in arguments) {
+                        if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
+                            args.push(arguments[a].__superprototype);
+                        }
+                    }
+                    
+                    this.list.remove.apply(this.list, args);
                     
                 };
                 
