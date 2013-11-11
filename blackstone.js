@@ -96,21 +96,21 @@
                 
                 // Safe // start
                 
-                // (superpositions [Superposition])
-                List.prototype.remove = function(supers) {
-                    for (var s in supers) {
-                        supers[s].in(this).remove();
+                // (superpositions... Superposition)
+                List.prototype.remove = function() {
+                    for (var s in arguments) {
+                        arguments[s].in(this).remove();
                     }
                     
                     return this.length;
                 };
                 
-                // (superpositions [Superposition])
-                List.prototype.append = function(supers) {
+                // (superpositions... Superposition)
+                List.prototype.append = function() {
                     
-                    if (supers.length > 0) {
-                        for (var s = 0; s < supers.length; s++) {
-                            var pos = supers[s].in(this);
+                    if (arguments.length > 0) {
+                        for (var s = 0; s < arguments.length; s++) {
+                            var pos = arguments[s].in(this);
                             
                             if (this.last) {
                                 this.last.__addAfter(pos);
@@ -127,12 +127,12 @@
                     return this.length;
                 };
                 
-                // (superpositions [Superposition])
-                List.prototype.prepend = function(supers) {
+                // (superpositions... Superposition)
+                List.prototype.prepend = function() {
                     
-                    if (supers.length > 0) {
-                        for (var s = supers.length - 1; s > 0-1; s--) {
-                            var pos = supers[s].in(this);
+                    if (arguments.length > 0) {
+                        for (var s = arguments.length - 1; s > 0-1; s--) {
+                            var pos = arguments[s].in(this);
                             
                             if (this.first) {
                                 this.first.__addBefore(pos);
@@ -285,15 +285,15 @@
                     this.exists = false;
                 };
                 
-                // (superpositions [Superposition])
-                Position.prototype.append = function(supers) {
+                // (superpositions... Superposition)
+                Position.prototype.append = function() {
                         
                     if (this == this.list.last) {
-                        return this.list.append(supers);
+                        return this.list.append.apply(this.list, arguments);
                         
                     } else {
-                        for (var s = supers.length-1; s > 0-1; s--) {
-                            var pos = supers[s].in(this.list);
+                        for (var s = arguments.length-1; s > 0-1; s--) {
+                            var pos = arguments[s].in(this.list);
                             
                             if (pos.exists) continue;
                             
@@ -307,15 +307,15 @@
                     return this.list.length;
                 };
                 
-                // (superpositions [Superposition])
-                Position.prototype.prepend = function(supers) {
+                // (superpositions... Superposition)
+                Position.prototype.prepend = function() {
                         
                     if (this == this.list.first) {
-                        return this.list.prepend(supers);
+                        return this.list.prepend.apply(this.list, arguments);
                         
                     } else {
-                        for (var s = 0; s < supers.length; s++) {
-                            var pos = supers[s].in(this.list);
+                        for (var s = 0; s < arguments.length; s++) {
+                            var pos = arguments[s].in(this.list);
                             
                             if (pos.exists) continue;
                             
@@ -523,7 +523,7 @@
                         var superhandler = handler;
                     } else throw new TypeError('selector');
                     
-                    this.list.append([superhandler.superposition]);
+                    this.list.append(superhandler.superposition);
                     
                     return superhandler;
                 }

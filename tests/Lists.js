@@ -15,7 +15,7 @@ describe('Blackstone Lists', function() {
         s2 = new Super;
         s3 = new Super;
         
-        l1.append([s1, s2, s3]);
+        l1.append(s1, s2, s3);
         
         // 1,2,3
         
@@ -36,7 +36,7 @@ describe('Blackstone Lists', function() {
         s5 = new Super;
         s6 = new Super;
         
-        s2.in(l1).append([s4, s5, s6]);
+        s2.in(l1).append(s4, s5, s6);
         
         // 1,2,4,5,6,3
         
@@ -79,7 +79,7 @@ describe('Blackstone Lists', function() {
     
     
     it('list.remove', function() {
-        l1.remove([s6, s3, s4]);
+        l1.remove(s6, s3, s4);
         
          // 1,5
          
@@ -93,7 +93,7 @@ describe('Blackstone Lists', function() {
     });
     
     it('list.prepend', function() {
-        l1.prepend([s6, s4, s2]);
+        l1.prepend(s6, s4, s2);
         
         // 6,4,2,1,5
         
@@ -117,7 +117,7 @@ describe('Blackstone Lists', function() {
     it('position.prepend', function() {
         s7 = new Super;
         s8 = new Super;
-        s4.in(l1).prepend([s3, s8, s7]);
+        s4.in(l1).prepend(s3, s8, s7);
         
         // 6,3,8,7,4,2,1,5
         
