@@ -7,7 +7,7 @@ var Item = blackstone.typing.Item;
 describe('Blackstone Typing', function() {
     
     it('typing', function() {
-        var A = new Type;
+        var A = Type.inherit();
         
         A.constructor = function() {
             this._a = 1;
@@ -19,7 +19,7 @@ describe('Blackstone Typing', function() {
     });
     
     it('multiple inheritance', function() {
-        var A = new Type;
+        var A = Type.inherit();
         
         A.constructor = function() {
             this._a = 1;
@@ -29,9 +29,9 @@ describe('Blackstone Typing', function() {
         
         B.prototype._b = 2;
         
-        var C = new Type;
+        var C = Type.inherit();
         
-        C.types = [ A, B ];
+        C.types.include(A, B);
         
         C.constructor = function() {
             this._c = 3;
@@ -46,6 +46,40 @@ describe('Blackstone Typing', function() {
         
         var a = A.new();
         a.of(C).should.be.false;
+    });
+    
+    it('many event emitters', function() {
+        var A = Type.inherit();
+        
+        var B = Type.inherit();
+        
+        var results = [];
+        
+        A.bind('event', function(next) {
+            results.push('A');
+            next();
+        });
+        
+        B.bind('event', function(next) {
+            results.push('B');
+            next();
+        });
+        
+        A.trigger('event', [], function() {
+            results.should.be.eql(['A']);
+        });
+        
+        B.trigger('event', [], function() {
+            results.should.be.eql(['A','B']);
+        });
+        
+        A.trigger('event', [], function() {
+            results.should.be.eql(['A','B','A']);
+        });
+        
+        B.trigger('event', [], function() {
+            results.should.be.eql(['A','B','A','B']);
+        });
     });
     
 });

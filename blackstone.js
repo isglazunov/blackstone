@@ -149,7 +149,7 @@
                     return this.length;
                 };
                 
-                // (handler Function⎨, options Object⎬)
+                // (handler Function⎨, options { sync: Boolean, reverse: Boolean }⎬)
                 List.prototype.each = function(handler, _options) {
                     
                     if (!lodash.isObject(_options)) var _options = {};
@@ -343,6 +343,7 @@
                     this.id = id++;
                     
                     this.lists = {};
+                    this.value = undefined;
                 };
                 
                 // Provides position of superposition in this list
@@ -412,7 +413,7 @@
                     this.id = id++;
                     
                     var superposition = new lists.Superposition();
-                    superposition.superhandler = this;
+                    superposition.value = this;
                     
                     this.superposition = superposition;
                     
@@ -505,7 +506,7 @@
                     
                     this.list.each(function(next, counter, superposition, position) {
                         if (next) {
-                            superposition.superhandler.trigger(args, next);
+                            superposition.value.trigger(args, next);
                         } else if (callback) callback();
                     });
                     
@@ -578,14 +579,14 @@
             
             typing.Item = (function() {
                 
-                // ()
+                // X
                 var Item = function() {};
                 
-                Item.prototype = new events.Emitter;
+                Item._prototype = {};
                 
                 // (types... Type)
                 // => Boolean
-                Item.prototype.of = function() {
+                Item._prototype.of = function() {
                     
                     var types = this.__type.__types();
                     
@@ -607,37 +608,97 @@
                 
             })();
             
-            typing.Type = (function(Item) {
+            typing.Types = (function() {
+                
+                // ()
+                var Types = function() {
+                    this.list = new lists.List;
+                };
+                
+                // (types... Type)
+                Types.prototype.include = function() {
+                    
+                    var args = [];
+                    
+                    for (var a in arguments) {
+                        args.push(arguments[a].superposition);
+                    }
+                    
+                    this.list.append.apply(this.list, args);
+                    
+                };
+                
+                // (types... Type)
+                Types.prototype.exclude = function() {
+                    
+                    var args = [];
+                    
+                    for (var a in arguments) {
+                        args.push(arguments[a].superposition);
+                    }
+                    
+                    this.list.remove.apply(this.list, args);
+                    
+                };
+                
+                // (handler Function⎨, options Object⎬)
+                Types.prototype.each = function(handler, options) {
+                    
+                    if (options.sync) {
+                        var handling = function(counter, superposition) {
+                            if (superposition) handler(superposition.value);
+                            else handler();
+                        };
+                    } else {
+                        var handling = function(next, counter, superposition) {
+                            if (superposition) handler(next, superposition.value);
+                            else handler();
+                        };
+                    }
+                    
+                    this.list.each(handling, options);
+                    
+                };
+                
+                return Types;
+                
+            })();
+            
+            typing.Type = (function(Types, Item) {
                 
                 var id = 0;
                 
-                // new ()
+                // X
                 var Type = function() {
                     this.id = id++;
                     this.prototype = {};
                     this.constructor = undefined;
-                    this.types = [];
+                    this.types = new Types;
+                    
+                    var superposition = new lists.Superposition;
+                    superposition.value = this;
+                    
+                    this.superposition = superposition;
                 };
-                
-                Type.prototype = new events.Emitter;
                 
                 // (results { byId Object, byOrder Array }, from Type)
                 var __types = function(results, from) {
                     if (!results.byId[from.id]) {
-                        if (from.types) {
-                            for (var p in from.types) {
-                                __types(results, from.types[p]);
-                            }
-                        }
+                        
+                        from.types.each(function(type) {
+                            if (type) __types(results, type);
+                        }, { sync: true });
                         
                         results.byId[from.id] = from;
                         results.byOrder.push(from);
                     }
                 };
                 
+                Type._prototype = {};
+                
                 // ()
                 // => { byId: { id: Type } , byOrder [ older < Type > younger ] }
-                Type.prototype.__types = function() {
+                Type._prototype.__types = function() {
                     
                     var results = {
                         byId: {},
@@ -652,11 +713,15 @@
                 
                 // (attr Array⎨, callback.apply(item, attr) Function⎬)
                 // => item Item
-                Type.prototype.new = function(attr, callback) {
+                Type._prototype.new = function(attr, callback) {
                     
                     var types = this.__types();
                     
                     // prototypes
+                    Item.prototype = new events.Emitter;
+                    
+                    lodash.extend(Item.prototype, Item._prototype);
+                    
                     var _Item = function() {};
                     _Item.prototype = new Item;
                     
@@ -687,10 +752,10 @@
                 
                 // ()
                 // => type Type
-                Type.prototype.inherit = function() {
+                Type._prototype.inherit = function() {
                     var type = new Type;
                     
-                    type.types.push(this);
+                    type.types.include(this);
                     
                     return type;
                 };
@@ -698,12 +763,18 @@
                 // ()
                 // => type Type
                 Type.inherit = function() {
-                    return new Type;
+                    Type.prototype = new events.Emitter;
+                    
+                    lodash.extend(Type.prototype, Type._prototype);
+                    
+                    var type = new Type;
+                    
+                    return type;
                 };
                 
                 return Type;
                 
-            })(typing.Item);
+            })(typing.Types, typing.Item);
             
             return typing;
             
