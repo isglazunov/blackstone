@@ -449,7 +449,7 @@
                 };
                 
                 // Only if bound!
-                // (args Array⎨, callback Function⎬);
+                // (args Array⎨, callback() Function⎬);
                 Superhandler.prototype.trigger = function(args, callback) {
                     
                     var superhandler = this;
@@ -536,16 +536,22 @@
                 
                 // new ()
                 var Emitter = function() {
-                    this.handlers = {};
+                    this.__handlers = {};
                 };
                 
                 // (name String, args Array⎨, callback Function⎬)
                 Emitter.prototype.trigger = function(name, args, callback) {
                     
-                    if (!this.handlers[name]) this.handlers[name] = new Handlers;
+                    this.__event(name).trigger(args, callback);
                     
-                    this.handlers[name].trigger(args, callback);
+                };
+                
+                // (name String)
+                // => handlers Handlers
+                Emitter.prototype.__event = function(name) {
+                    if (!this.__handlers[name]) this.__handlers[name] = new Handlers;
                     
+                    return this.__handlers[name];
                 };
                 
                 // (name String, handler Function⎨, options Object⎬)
@@ -553,9 +559,7 @@
                 // => superhandler
                 Emitter.prototype.bind = function(name, handler, options) {
                     
-                    if (!this.handlers[name]) this.handlers[name] = new Handlers;
-                    
-                    return this.handlers[name].bind(handler, options);
+                    return this.__event(name).bind(handler, options);
                     
                 };
                 
@@ -566,6 +570,144 @@
             return events;
             
         })(blackstone.lists);
+        
+        // Blackstone Typing
+        blackstone.typing = (function(events, lists) {
+            
+            var typing = {};
+            
+            typing.Item = (function() {
+                
+                // ()
+                var Item = function() {};
+                
+                Item.prototype = new events.Emitter;
+                
+                // (types... Type)
+                // => Boolean
+                Item.prototype.of = function() {
+                    
+                    var types = this.__type.__types();
+                    
+                    for (var a in arguments) {
+                        var found = false;
+                        
+                        for (var p in types.byOrder) {
+                            if (types.byOrder[p].id == arguments[a].id) found = true;
+                        }
+                        
+                        if (!found) return false;
+                    }
+                    
+                    return true;
+                    
+                };
+                
+                return Item;
+                
+            })();
+            
+            typing.Type = (function(Item) {
+                
+                var id = 0;
+                
+                // new ()
+                var Type = function() {
+                    this.id = id++;
+                    this.prototype = {};
+                    this.constructor = undefined;
+                    this.types = [];
+                };
+                
+                Type.prototype = new events.Emitter;
+                
+                // (results { byId Object, byOrder Array }, from Type)
+                var __types = function(results, from) {
+                    if (!results.byId[from.id]) {
+                        if (from.types) {
+                            for (var p in from.types) {
+                                __types(results, from.types[p]);
+                            }
+                        }
+                        
+                        results.byId[from.id] = from;
+                        results.byOrder.push(from);
+                    }
+                };
+                
+                // ()
+                // => { byId: { id: Type } , byOrder [ older < Type > younger ] }
+                Type.prototype.__types = function() {
+                    
+                    var results = {
+                        byId: {},
+                        byOrder: []
+                    };
+                    
+                    __types(results, this);
+                    
+                    return results;
+                    
+                };
+                
+                // (attr Array⎨, callback.apply(item, attr) Function⎬)
+                // => item Item
+                Type.prototype.new = function(attr, callback) {
+                    
+                    var types = this.__types();
+                    
+                    // prototypes
+                    var _Item = function() {};
+                    _Item.prototype = new Item;
+                    
+                    _Item.prototype.__type = this;
+                    
+                    for (var p in types.byOrder) {
+                        lodash.merge(_Item.prototype, types.byOrder[p].prototype);
+                    }
+                    
+                    // constructor
+                    var item = new _Item;
+                    
+                    for (var p in types.byOrder) {
+                        if(lodash.isFunction(types.byOrder[p].constructor)) types.byOrder[p].constructor.apply(item, attr);
+                    }
+                    
+                    // events
+                    async.nextTick(function() {
+                        async.mapSeries(types.byOrder, function(prototype, next) {
+                            prototype.trigger('new', attr, next);
+                        }, function() {
+                            if (callback) callback.apply(item, attr);
+                        });
+                    });
+                    
+                    return item;
+                };
+                
+                // ()
+                // => type Type
+                Type.prototype.inherit = function() {
+                    var type = new Type;
+                    
+                    type.types.push(this);
+                    
+                    return type;
+                };
+                
+                // ()
+                // => type Type
+                Type.inherit = function() {
+                    return new Type;
+                };
+                
+                return Type;
+                
+            })(typing.Item);
+            
+            return typing;
+            
+        })(blackstone.events, blackstone.lists);
     };
     
     // Blackstone.version String

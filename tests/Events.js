@@ -135,7 +135,7 @@ describe('Blackstone Events', function() {
         
         emitter.bind('event', function(superposition, next, a, b) {
             counter = counter+a+b;
-            superposition.in(emitter.handlers.event).unbind();
+            superposition.in(emitter.__event('event')).unbind();
             next();
         }, { self: true });
         
@@ -145,6 +145,6 @@ describe('Blackstone Events', function() {
                 done();
             });
         });
-    })
+    });
     
 });
