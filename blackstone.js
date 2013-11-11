@@ -17,7 +17,7 @@
     // Version for internal use
     var __version = 'develop';
     
-    // new Blackstone(lodash, async)
+    // new (lodash, async)
     // Main constructor
     var Blackstone = function(lodash, async) {
         var blackstone = this;
@@ -42,6 +42,7 @@
                 
                 var id = 0;
                 
+                // new ()
                 var List = function() {
                     this.id = id++;
                     
@@ -55,14 +56,17 @@
                 
                 // Linking with a list of positions // start
                 
+                // (position Position)
                 List.prototype.__setSingle = function(position) {
                     this.first = this.last = position;
                 };
                 
+                // (position Position)
                 List.prototype.__setFirst = function(position) {
                     this.first = position;
                 };
                 
+                // (position Position)
                 List.prototype.__setLast = function(position) {
                     this.last = position;
                 };
@@ -71,6 +75,7 @@
                 
                 // Unlinking with a list of positions
                 // Attention! The position should be complete!
+                // (position Position)
                 List.prototype.__remove = function(position) {
                     if (this.first == position && this.last == position) {
                         this.first = this.last = undefined;
@@ -91,6 +96,7 @@
                 
                 // Safe // start
                 
+                // (superpositions [Superposition])
                 List.prototype.remove = function(supers) {
                     for (var s in supers) {
                         supers[s].in(this).remove();
@@ -99,6 +105,7 @@
                     return this.length;
                 };
                 
+                // (superpositions [Superposition])
                 List.prototype.append = function(supers) {
                     
                     if (supers.length > 0) {
@@ -120,6 +127,7 @@
                     return this.length;
                 };
                 
+                // (superpositions [Superposition])
                 List.prototype.prepend = function(supers) {
                     
                     if (supers.length > 0) {
@@ -141,6 +149,65 @@
                     return this.length;
                 };
                 
+                // (handler Function⎨, options Object⎬)
+                List.prototype.each = function(handler, _options) {
+                    
+                    if (!lodash.isObject(_options)) var _options = {};
+                    
+                    var options = lodash.defaults(_options, {
+                        sync: false,
+                        reverse: false
+                    });
+                    
+                    if (!options.reverse) {
+                        var now = this.first;
+                        var counter = 0;
+                        
+                        var move = function() {
+                            now = now.next;
+                        };
+                        
+                        var getCounter = function() {
+                            return counter++;
+                        };
+                    } else {
+                        var now = this.last;
+                        var counter = this.length-1;
+                        
+                        var move = function() {
+                            now = now.prev;
+                        };
+                        
+                        var getCounter = function() {
+                            return counter--;
+                        };
+                    }
+                    
+                    var next = function() {
+                        move();
+                        iteration();
+                    };
+                    if (!options.sync) {
+                        var handling = function() {
+                            handler(next, getCounter(), now.superposition, now);
+                        };
+                    } else {
+                        var handling = function() {
+                            handler(getCounter(), now.superposition, now);
+                            next();
+                        };
+                    }
+                    
+                    var iteration = function() {
+                        if (now) {
+                            handling();
+                        } else handler();
+                    };
+                    
+                    iteration();
+                    
+                };
+                
                 // Safe // end
                 
                 return List;
@@ -151,7 +218,8 @@
                 
                 var id = 0;
                 
-                var Position = function(list) {
+                // new (list List, superposition Superposition)
+                var Position = function(list, superposition) {
                     this.id = id++;
                     
                     this.exists = false;
@@ -160,12 +228,15 @@
                     this.prev = undefined;
                     
                     this.list = list;
+                    
+                    this.superposition = superposition;
                 };
                 
                 // Unsafe // start
                 
                 // Linking with a position // start
                 
+                // (position Position)
                 Position.prototype.__addBefore = function(pos) {
                     if (this.prev) {
                         this.prev.next = pos;
@@ -175,6 +246,7 @@
                     pos.next = this;
                 };
                 
+                // (position Position)
                 Position.prototype.__addAfter = function(pos) {
                     if (this.next) {
                         this.next.prev = pos;
@@ -187,6 +259,7 @@
                 // Linking with a position // end
                 
                 // Unlinking with the positions
+                // ()
                 Position.prototype.__remove = function() {
                     if (this.prev && this.next) {
                         this.prev.next = this.next;
@@ -205,13 +278,14 @@
                 // Unsafe // end
                 
                 // Safe // start
-                
+                // ()
                 Position.prototype.remove = function() {
                     this.list.__remove(this);
                     this.__remove();
                     this.exists = false;
                 };
                 
+                // (superpositions [Superposition])
                 Position.prototype.append = function(supers) {
                         
                     if (this == this.list.last) {
@@ -233,6 +307,7 @@
                     return this.list.length;
                 };
                 
+                // (superpositions [Superposition])
                 Position.prototype.prepend = function(supers) {
                         
                     if (this == this.list.first) {
@@ -271,9 +346,10 @@
                 };
                 
                 // Provides position of superposition in this list
+                // (list List)
                 Superposition.prototype.in = function(list) {
                     if (this.lists[list.id]) return this.lists[list.id];
-                    else this.lists[list.id] = new Position(list);
+                    else this.lists[list.id] = new Position(list, this);
                     
                     return this.lists[list.id];
                 };
@@ -286,6 +362,210 @@
             
         })();
         
+        // Blackstone Events
+        blackstone.events = (function(lists) {
+            
+            var events = {};
+            
+            events.Handler = (function() {
+                
+                // new (position Position, superhandler Superhandler)
+                var Handler = function(position, superhandler) {
+                    
+                    this.position = position;
+                    this.superhandler = superhandler;
+                    
+                };
+                
+                // ~ adapter
+                Handler.prototype.bind = function() {
+                    this.superhandler.bind.apply(this.superhandler, arguments);
+                };
+                
+                // ~ adapter
+                Handler.prototype.trigger = function() {
+                    this.superhandler.bind.apply(this.superhandler, arguments);
+                };
+                
+                // ()
+                Handler.prototype.unbind = function() {
+                    this.position.remove();
+                };
+                
+                return Handler;
+                
+            })();
+            
+            events.Superhandler = (function(Handler) {
+                
+                var id = 0;
+                
+                var defaults = {
+                    sync: false,
+                    self: false,
+                    this: false
+                };
+                
+                // new ()
+                var Superhandler = function() {
+                    
+                    this.id = id++;
+                    
+                    var superposition = new lists.Superposition();
+                    superposition.superhandler = this;
+                    
+                    this.superposition = superposition;
+                    
+                    this.options = undefined;
+                    this.method = undefined;
+                    
+                };
+                
+                // (handlers Handlers)
+                Superhandler.prototype.in = function(handlers) {
+                    
+                    var superhandler = this;
+                    
+                    var position = this.superposition.in(handlers.list);
+                    
+                    if (position) {
+                        if (!position.handler) position.handler = new Handler(position, superhandler);
+                        
+                        return position.handler;
+                    } else return undefined;
+                    
+                };
+                
+                // (method Function⎨, options Object⎬);
+                Superhandler.prototype.bind = function(method, options) {
+                    
+                    if (!lodash.isObject(options)) var options = {};
+                    
+                    var options = lodash.defaults(options, defaults);
+                    
+                    this.method = method;
+                    this.options = options;
+                    
+                };
+                
+                // Only if bound!
+                // (args Array⎨, callback Function⎬);
+                Superhandler.prototype.trigger = function(args, callback) {
+                    
+                    var superhandler = this;
+                    
+                    var applyArgs = [];
+                    
+                    var alreadyNext = false;
+                    
+                    var next = function() {
+                        if (!alreadyNext) {
+                            alreadyNext = true;
+                            if (callback) callback();
+                        }
+                    };
+                    
+                    if (superhandler.options.self) applyArgs.push(superhandler);
+                    
+                    if (!superhandler.options.sync) applyArgs.push(next);
+                    
+                    applyArgs.push.apply(applyArgs, args);
+                    
+                    var caller = function() {
+                        superhandler.method.apply(superhandler.options.this, applyArgs);
+                    };
+                    
+                    if (superhandler.options.sync) {
+                        caller();
+                        next();
+                    } else {
+                        caller();
+                    }
+                    
+                };
+                
+                return Superhandler;
+                
+            })(events.Handler);
+            
+            events.Handlers = (function(Superhandler) {
+                
+                // new ()
+                var Handlers = function() {
+                    
+                    var list = new lists.List;
+                    list.handlers = this;
+                    
+                    this.list = list;
+                    
+                };
+                
+                // (args Array⎨, callback Function⎬)
+                Handlers.prototype.trigger = function(args, callback) {
+                    
+                    this.list.each(function(next, counter, superposition, position) {
+                        if (next) {
+                            superposition.superhandler.trigger(args, next);
+                        } else if (callback) callback();
+                    });
+                    
+                };
+                
+                // (handler Function⎨, options Object⎬)
+                // (handler Superhandler)
+                // => superhandler
+                Handlers.prototype.bind = function(handler, options) {
+                    
+                    if (lodash.isFunction(handler)) {
+                        var superhandler = new Superhandler;
+                        superhandler.bind.apply(superhandler, arguments);
+                    } else if (lodash.isObject(handler) && handler instanceof Superhandler) {
+                        var superhandler = handler;
+                    } else throw new TypeError('selector');
+                    
+                    this.list.append([superhandler.superposition]);
+                    
+                    return superhandler;
+                }
+                
+                return Handlers;
+                
+            })(events.Superhandler);
+            
+            events.Emitter = (function(Handlers) {
+                
+                // new ()
+                var Emitter = function() {
+                    this.handlers = {};
+                };
+                
+                // (name String, args Array⎨, callback Function⎬)
+                Emitter.prototype.trigger = function(name, args, callback) {
+                    
+                    if (!this.handlers[name]) this.handlers[name] = new Handlers;
+                    
+                    this.handlers[name].trigger(args, callback);
+                    
+                };
+                
+                // (name String, handler Function⎨, options Object⎬)
+                // (name String, handler Superhandler)
+                // => superhandler
+                Emitter.prototype.bind = function(name, handler, options) {
+                    
+                    if (!this.handlers[name]) this.handlers[name] = new Handlers;
+                    
+                    return this.handlers[name].bind(handler, options);
+                    
+                };
+                
+                return Emitter;
+                
+            })(events.Handlers);
+            
+            return events;
+            
+        })(blackstone.lists);
     };
     
     // Blackstone.version String

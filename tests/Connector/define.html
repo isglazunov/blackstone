@@ -18,7 +18,7 @@
             });
         </script>
         <script>
-            require(['blackstone'], function(blackstone){
+            require(['blackstone', function(blackstone){
                 it('Blackstone Connector', function(){
                     blackstone.should.be.an.instanceof(Blackstone);
                 });

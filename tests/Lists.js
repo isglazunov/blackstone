@@ -5,101 +5,190 @@ var List = blackstone.lists.List;
 var Position = blackstone.lists.Position;
 var Super = blackstone.lists.Superposition;
 
-it('Blackstone Lists', function() {
+describe('Blackstone Lists', function() {
     
-    var l = {};
+    var l1 = new List;
     
-    var s = {};
+    var s1, s2, s3;
+    it('list.append', function() {
+        s1 = new Super;
+        s2 = new Super;
+        s3 = new Super;
+        
+        l1.append([s1, s2, s3]);
+        
+        // 1,2,3
+        
+        l1.first.should.be.eql(s1.in(l1));
+        l1.first.next.should.be.eql(s2.in(l1));
+        l1.first.next.next.should.be.eql(s3.in(l1));
+        
+        l1.last.prev.prev.should.be.eql(s1.in(l1));
+        l1.last.prev.should.be.eql(s2.in(l1));
+        l1.last.should.be.eql(s3.in(l1));
+        
+        l1.length.should.be.eql(3);
+    });
     
-    l[1] = new List; // []
+    var s4, s5, s6;
+    it('position.append', function() {
+        s4 = new Super;
+        s5 = new Super;
+        s6 = new Super;
+        
+        s2.in(l1).append([s4, s5, s6]);
+        
+        // 1,2,4,5,6,3
+        
+        l1.first.should.be.eql(s1.in(l1));
+        l1.first.next.should.be.eql(s2.in(l1));
+        l1.first.next.next.should.be.eql(s4.in(l1));
+        l1.first.next.next.next.should.be.eql(s5.in(l1));
+        l1.first.next.next.next.next.should.be.eql(s6.in(l1));
+        l1.first.next.next.next.next.next.should.be.eql(s3.in(l1));
+        
+        l1.last.prev.prev.prev.prev.prev.should.be.eql(s1.in(l1));
+        l1.last.prev.prev.prev.prev.should.be.eql(s2.in(l1));
+        l1.last.prev.prev.prev.should.be.eql(s4.in(l1));
+        l1.last.prev.prev.should.be.eql(s5.in(l1));
+        l1.last.prev.should.be.eql(s6.in(l1));
+        l1.last.should.be.eql(s3.in(l1));
+        
+        l1.length.should.be.eql(6);
+    });
     
-    s[1] = new Super;
-    s[2] = new Super;
-    s[3] = new Super;
+    it('position.remove', function() {
+        s2.in(l1).remove();
+        
+        // 1,4,5,6,3
+        
+        l1.first.should.be.eql(s1.in(l1));
+        l1.first.next.should.be.eql(s4.in(l1));
+        l1.first.next.next.should.be.eql(s5.in(l1));
+        l1.first.next.next.next.should.be.eql(s6.in(l1));
+        l1.first.next.next.next.next.should.be.eql(s3.in(l1));
+        
+        l1.last.prev.prev.prev.prev.should.be.eql(s1.in(l1));
+        l1.last.prev.prev.prev.should.be.eql(s4.in(l1));
+        l1.last.prev.prev.should.be.eql(s5.in(l1));
+        l1.last.prev.should.be.eql(s6.in(l1));
+        l1.last.should.be.eql(s3.in(l1));
+        
+        l1.length.should.be.eql(5);
+    });
     
-    l[1].append([s[1], s[2], s[3]]); // [1,2,3]
     
-    l[1].first.should.be.eql(s[1].in(l[1]));
-    l[1].first.next.should.be.eql(s[2].in(l[1]));
-    l[1].first.next.next.should.be.eql(s[3].in(l[1]));
+    it('list.remove', function() {
+        l1.remove([s6, s3, s4]);
+        
+         // 1,5
+         
+        l1.first.should.be.eql(s1.in(l1));
+        l1.first.next.should.be.eql(s5.in(l1));
+        
+        l1.last.prev.should.be.eql(s1.in(l1));
+        l1.last.should.be.eql(s5.in(l1));
+        
+        l1.length.should.be.eql(2);
+    });
     
-    l[1].last.prev.prev.should.be.eql(s[1].in(l[1]));
-    l[1].last.prev.should.be.eql(s[2].in(l[1]));
-    l[1].last.should.be.eql(s[3].in(l[1]));
+    it('list.prepend', function() {
+        l1.prepend([s6, s4, s2]);
+        
+        // 6,4,2,1,5
+        
+        l1.first.should.be.eql(s6.in(l1));
+        l1.first.next.should.be.eql(s4.in(l1));
+        l1.first.next.next.should.be.eql(s2.in(l1));
+        l1.first.next.next.next.should.be.eql(s1.in(l1));
+        l1.first.next.next.next.next.should.be.eql(s5.in(l1));
+        
+        l1.last.prev.prev.prev.prev.should.be.eql(s6.in(l1));
+        l1.last.prev.prev.prev.should.be.eql(s4.in(l1));
+        l1.last.prev.prev.should.be.eql(s2.in(l1));
+        l1.last.prev.should.be.eql(s1.in(l1));
+        l1.last.should.be.eql(s5.in(l1));
+        
+        l1.length.should.be.eql(5);
+    });
     
-    l[1].length.should.be.eql(3);
     
-    s[4] = new Super;
-    s[5] = new Super;
-    s[6] = new Super;
+    var s7, s8;
+    it('position.prepend', function() {
+        s7 = new Super;
+        s8 = new Super;
+        s4.in(l1).prepend([s3, s8, s7]);
+        
+        // 6,3,8,7,4,2,1,5
+        
+        l1.first.should.be.eql(s6.in(l1));
+        l1.first.next.should.be.eql(s3.in(l1));
+        l1.first.next.next.should.be.eql(s8.in(l1));
+        l1.first.next.next.next.should.be.eql(s7.in(l1));
+        l1.first.next.next.next.next.should.be.eql(s4.in(l1));
+        l1.first.next.next.next.next.next.should.be.eql(s2.in(l1));
+        l1.first.next.next.next.next.next.next.should.be.eql(s1.in(l1));
+        l1.first.next.next.next.next.next.next.next.should.be.eql(s5.in(l1));
+        
+        l1.last.prev.prev.prev.prev.prev.prev.prev.should.be.eql(s6.in(l1));
+        l1.last.prev.prev.prev.prev.prev.prev.should.be.eql(s3.in(l1));
+        l1.last.prev.prev.prev.prev.prev.should.be.eql(s8.in(l1));
+        l1.last.prev.prev.prev.prev.should.be.eql(s7.in(l1));
+        l1.last.prev.prev.prev.should.be.eql(s4.in(l1));
+        l1.last.prev.prev.should.be.eql(s2.in(l1));
+        l1.last.prev.should.be.eql(s1.in(l1));
+        l1.last.should.be.eql(s5.in(l1));
+        
+        l1.length.should.be.eql(8);
+    });
     
-    s[2].in(l[1]).append([s[4], s[5], s[6]]); // [1,2,4,5,6,3]
+    it('list.each', function() {
+        var eached = false;
+        l1.each(function(next, counter, sup) {
+            if (counter == 0) sup.should.be.eql(s6);
+            else if (counter == 1) sup.should.be.eql(s3);
+            else if (counter == 2) sup.should.be.eql(s8);
+            else if (counter == 3) sup.should.be.eql(s7);
+            else if (counter == 4) sup.should.be.eql(s4);
+            else if (counter == 5) sup.should.be.eql(s2);
+            else if (counter == 6) sup.should.be.eql(s1);
+            else if (counter == 7) sup.should.be.eql(s5);
+            else eached = true;
     
-    l[1].first.should.be.eql(s[1].in(l[1]));
-    l[1].first.next.should.be.eql(s[2].in(l[1]));
-    l[1].first.next.next.should.be.eql(s[4].in(l[1]));
-    l[1].first.next.next.next.should.be.eql(s[5].in(l[1]));
-    l[1].first.next.next.next.next.should.be.eql(s[6].in(l[1]));
-    l[1].first.next.next.next.next.next.should.be.eql(s[3].in(l[1]));
+            if (next) next();
+        });
+        eached.should.be.true;
+    });
     
-    l[1].last.prev.prev.prev.prev.prev.should.be.eql(s[1].in(l[1]));
-    l[1].last.prev.prev.prev.prev.should.be.eql(s[2].in(l[1]));
-    l[1].last.prev.prev.prev.should.be.eql(s[4].in(l[1]));
-    l[1].last.prev.prev.should.be.eql(s[5].in(l[1]));
-    l[1].last.prev.should.be.eql(s[6].in(l[1]));
-    l[1].last.should.be.eql(s[3].in(l[1]));
+    it('list.each sync', function() {
+        var eached = false;
+        l1.each(function(counter, sup) {
+            if (counter == 0) sup.should.be.eql(s6);
+            else if (counter == 1) sup.should.be.eql(s3);
+            else if (counter == 2) sup.should.be.eql(s8);
+            else if (counter == 3) sup.should.be.eql(s7);
+            else if (counter == 4) sup.should.be.eql(s4);
+            else if (counter == 5) sup.should.be.eql(s2);
+            else if (counter == 6) sup.should.be.eql(s1);
+            else if (counter == 7) sup.should.be.eql(s5);
+            else eached = true;
+        }, { sync: true });
+        eached.should.be.true;
+    });
     
-    l[1].length.should.be.eql(6);
-    
-    s[2].in(l[1]).remove(); // [1,4,5,6,3]
-    l[1].remove([s[6], s[3], s[4]]); // [1,5]
-    
-    l[1].first.should.be.eql(s[1].in(l[1]));
-    l[1].first.next.should.be.eql(s[5].in(l[1]));
-    
-    l[1].last.prev.should.be.eql(s[1].in(l[1]));
-    l[1].last.should.be.eql(s[5].in(l[1]));
-    
-    l[1].length.should.be.eql(2);
-    
-    l[1].prepend([s[6], s[4], s[2]]); // [6,4,2,1,5]
-    
-    l[1].first.should.be.eql(s[6].in(l[1]));
-    l[1].first.next.should.be.eql(s[4].in(l[1]));
-    l[1].first.next.next.should.be.eql(s[2].in(l[1]));
-    l[1].first.next.next.next.should.be.eql(s[1].in(l[1]));
-    l[1].first.next.next.next.next.should.be.eql(s[5].in(l[1]));
-    
-    l[1].last.prev.prev.prev.prev.should.be.eql(s[6].in(l[1]));
-    l[1].last.prev.prev.prev.should.be.eql(s[4].in(l[1]));
-    l[1].last.prev.prev.should.be.eql(s[2].in(l[1]));
-    l[1].last.prev.should.be.eql(s[1].in(l[1]));
-    l[1].last.should.be.eql(s[5].in(l[1]));
-    
-    l[1].length.should.be.eql(5);
-    
-    s[7] = new Super;
-    s[8] = new Super;
-    s[4].in(l[1]).prepend([s[3], s[8], s[7]]); // [6,3,8,7,4,2,1,5]
-    
-    l[1].first.should.be.eql(s[6].in(l[1]));
-    l[1].first.next.should.be.eql(s[3].in(l[1]));
-    l[1].first.next.next.should.be.eql(s[8].in(l[1]));
-    l[1].first.next.next.next.should.be.eql(s[7].in(l[1]));
-    l[1].first.next.next.next.next.should.be.eql(s[4].in(l[1]));
-    l[1].first.next.next.next.next.next.should.be.eql(s[2].in(l[1]));
-    l[1].first.next.next.next.next.next.next.should.be.eql(s[1].in(l[1]));
-    l[1].first.next.next.next.next.next.next.next.should.be.eql(s[5].in(l[1]));
-    
-    l[1].last.prev.prev.prev.prev.prev.prev.prev.should.be.eql(s[6].in(l[1]));
-    l[1].last.prev.prev.prev.prev.prev.prev.should.be.eql(s[3].in(l[1]));
-    l[1].last.prev.prev.prev.prev.prev.should.be.eql(s[8].in(l[1]));
-    l[1].last.prev.prev.prev.prev.should.be.eql(s[7].in(l[1]));
-    l[1].last.prev.prev.prev.should.be.eql(s[4].in(l[1]));
-    l[1].last.prev.prev.should.be.eql(s[2].in(l[1]));
-    l[1].last.prev.should.be.eql(s[1].in(l[1]));
-    l[1].last.should.be.eql(s[5].in(l[1]));
-    
-    l[1].length.should.be.eql(8);
-    
+    it('list.each reverse', function() {
+        var eached = false;
+        l1.each(function(counter, sup) {
+            if (counter == 0) sup.should.be.eql(s5);
+            else if (counter == 1) sup.should.be.eql(s1);
+            else if (counter == 2) sup.should.be.eql(s2);
+            else if (counter == 3) sup.should.be.eql(s4);
+            else if (counter == 4) sup.should.be.eql(s7);
+            else if (counter == 5) sup.should.be.eql(s8);
+            else if (counter == 6) sup.should.be.eql(s3);
+            else if (counter == 7) sup.should.be.eql(s6);
+            else eached = true;
+        }, { reverse: true });
+        eached.should.be.true;
+    });
 });
