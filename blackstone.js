@@ -681,6 +681,7 @@
                     this.prototype = {};
                     this.constructor = undefined;
                     this.inheritor = undefined;
+                    this.creator = undefined;
                     
                     this.prototypes = new Prototypes
                 };
@@ -747,8 +748,8 @@
                             lodash.extend(Prototype.prototype, prototypes.all[p]);
                         } else if (prototypes.all[p] instanceof Type) {
                             lodash.extend(Prototype.prototype, prototypes.all[p].prototype);
-                            if (lodash.isFunction(prototypes.all[p].inheritor)) {
-                                prototypes.all[p].inheritor.call(item, item, item.__type);
+                            if (lodash.isFunction(prototypes.all[p].creator)) {
+                                prototypes.all[p].creator.call(Prototype.prototype, Prototype.prototype, type, prototypes);
                             }
                         }
                     }
@@ -769,7 +770,15 @@
                     // prototype to superposition
                     superposition.value = item;
                     
-                    if (lodash.isFunction(this.constructor)) this.constructor.call(item, attr, item, item.__type);
+                    for (var p in prototypes.all) {
+                        if (prototypes.all[p] instanceof Type) {
+                            if (lodash.isFunction(prototypes.all[p].inheritor)) {
+                                prototypes.all[p].inheritor.call(item, item, item.__type, prototypes);
+                            }
+                        }
+                    }
+                    
+                    if (lodash.isFunction(this.constructor)) this.constructor.call(item, attr, item, item.__type, prototypes);
                     
                     // events
                     async.nextTick(function() {
@@ -836,6 +845,18 @@
             
         })(blackstone.typing.Type);
         
+        // Blackstone types List
+        blackstone.List = (function(Type, lists) {
+            
+            var List = Type.inherit();
+            
+            List.inheritor = function() {
+                this.__list = new lists.List;
+            };
+            
+            return List;
+            
+        })(blackstone.typing.Type, blackstone.lists);
     };
     
     // Blackstone.version String
