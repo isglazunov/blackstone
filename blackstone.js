@@ -817,6 +817,21 @@
             return typing;
             
         })(blackstone.events, blackstone.lists);
+        
+        // Blackstone types Superposition
+        blackstone.Superposition = (function(Type) {
+            
+            var Superposition = Type.inherit();
+            
+            // (list List)
+            Superposition.prototype.in = function(list) {
+                return this.__superposition.in(list);
+            };
+            
+            return Superposition;
+            
+        })(blackstone.typing.Type);
+        
     };
     
     // Blackstone.version String
