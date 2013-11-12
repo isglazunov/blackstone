@@ -73,7 +73,7 @@ describe('Blackstone Events', function() {
         
         handlers.bind(superhandler).should.be.eql(superhandler);
         
-        handlers.list.first.superposition.value.should.be.eql(superhandler);
+        handlers.list.first.super.value.should.be.eql(superhandler);
         handlers.list.first.should.be.eql(handlers.list.last);
     });
     
@@ -84,7 +84,7 @@ describe('Blackstone Events', function() {
             next();
         });
         
-        handlers.list.first.superposition.value.should.be.eql(superhandler);
+        handlers.list.first.super.value.should.be.eql(superhandler);
         handlers.list.first.should.be.eql(handlers.list.last);
     });
     

@@ -50,6 +50,8 @@
                     
                     this.first = undefined;
                     this.last = undefined;
+                    
+                    this.value = undefined;
                 };
                 
                 // Unsafe // start
@@ -149,7 +151,7 @@
                     return this.length;
                 };
                 
-                // (handler Function⎨, options { sync: Boolean, reverse: Boolean }⎬)
+                // (handler Function⎨, options { sync Boolean, reverse Boolean, callback Function }⎬)
                 List.prototype.each = function(handler, _options) {
                     
                     var list = this;
@@ -201,19 +203,19 @@
                             handler.call({
                                 counter: counter,
                                 position: position,
-                                superposition: position.superposition,
+                                superposition: position.super,
                                 list: list,
                                 next: next
-                            }, position.superposition, position, list);
+                            }, position.super, position, list);
                         };
                     } else {
                         var iteration = function() {
                             handler.call({
                                 counter: counter,
                                 position: position,
-                                superposition: position.superposition,
+                                superposition: position.super,
                                 list: list
-                            }, position.superposition, position, list);
+                            }, position.super, position, list);
                             
                             if (future) next();
                             else if (options.callback) options.callback();
@@ -246,7 +248,9 @@
                     
                     this.list = list;
                     
-                    this.superposition = superposition;
+                    this.super = superposition;
+                    
+                    this.value = undefined;
                 };
                 
                 // Unsafe // start
@@ -433,7 +437,7 @@
                     var superposition = new lists.Superposition();
                     superposition.value = this;
                     
-                    this.superposition = superposition;
+                    this.super = superposition;
                     
                     this.options = undefined;
                     this.method = undefined;
@@ -445,7 +449,7 @@
                     
                     var superhandler = this;
                     
-                    var position = this.superposition.in(handlers.list);
+                    var position = this.super.in(handlers.list);
                     
                     if (position) {
                         if (!position.handler) position.handler = new Handler(position, superhandler);
@@ -541,7 +545,7 @@
                         var superhandler = handler;
                     } else throw new TypeError('selector');
                     
-                    this.list.append(superhandler.superposition);
+                    this.list.append(superhandler.super);
                     
                     return superhandler;
                 }
@@ -639,7 +643,7 @@
                     
                     for (var a in arguments) {
                         if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
-                            args.push(arguments[a].__superposition);
+                            args.push(arguments[a].__super);
                         }
                     }
                     
@@ -654,7 +658,7 @@
                     
                     for (var a in arguments) {
                         if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
-                            args.push(arguments[a].__superposition);
+                            args.push(arguments[a].__super);
                         }
                     }
                     
@@ -662,7 +666,7 @@
                     
                 };
                 
-                // (handler Function⎨, options Object⎬)
+                // (handler Function⎨, options { sync Boolean, reverse Boolean, callback Function }⎬)
                 Prototypes.prototype.each = function(handler, options) {
                     
                     this.list.each(function(superposition, position) {
@@ -770,7 +774,7 @@
                     var superposition = new lists.Superposition;
                     
                     // superposition to prototype
-                    Prototype.prototype.__superposition = superposition;
+                    Prototype.prototype.__super = superposition;
                     
                     // constructor
                     var item = new Prototype;
@@ -821,7 +825,7 @@
                     var superposition = new lists.Superposition;
                     
                     // superposition to prototype
-                    Prototype.prototype.__superposition = superposition;
+                    Prototype.prototype.__super = superposition;
                     
                     var type = new Prototype;
                     
@@ -838,6 +842,164 @@
             return typing;
             
         })(blackstone.events, blackstone.lists);
+        
+        // Blackstone Typing Lists
+        (function() {
+            
+            // ()
+            var toNative = function(list, arguments) {
+                var args = [];
+                
+                for (var a in arguments) {
+                    if (arguments[a] instanceof blackstone.typing.Item, arguments[a].of(blackstone.Superposition)) {
+                        arguments[a].in(list);
+                        args.push(arguments[a].__native);
+                    }
+                }
+                
+                return args;
+            };
+            
+            // + blackstone.Superposition
+            blackstone.Position = (function(typing) {
+                
+                var Position = typing.Type.inherit();
+                
+                Position.constructor = function(native) {
+                    this.__native = native;
+                    this.__native.value = this;
+                };
+                
+                Position.creator = function(prototype) {
+                    
+                    // Safe // start
+                    // ()
+                    prototype.remove = function() {
+                        return this.__native.remove();
+                    };
+                    
+                    // (superpositions... Superposition)
+                    prototype.append = function() {
+                        return this.__native.append.apply(this.__native, toNative(this.list(), arguments));
+                    };
+                    
+                    // (superpositions... Superposition)
+                    prototype.prepend = function() {
+                        return this.__native.prepend.apply(this.__native, toNative(this.list(), arguments));
+                    };
+                    
+                    prototype.prev = function() {
+                        return this.__native.prev.value;
+                    };
+                    
+                    prototype.next = function() {
+                        return this.__native.next.value;
+                    };
+                    
+                    prototype.list = function() {
+                        return this.__native.list.value;
+                    };
+                    
+                    prototype.super = function() {
+                        return this.__native.super.value;
+                    };
+                };
+                
+                return Position;
+                
+            })(blackstone.typing);
+            
+            // + blackstone.List
+            blackstone.Superposition = (function(lists, typing, Position) {
+                
+                var Superposition = typing.Type.inherit();
+                
+                Superposition.constructor = function() {
+                    this.__native = new lists.Superposition;
+                    this.__native.value = this;
+                };
+                
+                Superposition.creator = function(prototype) {
+                    
+                    // (list List)
+                    prototype.in = function(list) {
+                        var _position = undefined;
+                        var position = undefined;
+                        
+                        if (list instanceof typing.Item && list.of(blackstone.List)) _position = this.__native.in(list.__list);
+                        else if (list instanceof lists.List) _position = this.__native.in(list);
+                        
+                        if (_position) {
+                            if (!_position.value) {
+                                _position.value = Position.new(_position);
+                            }
+                            return _position.value;
+                        } else return undefined;
+                    };
+                    
+                };
+                
+                return Superposition;
+                
+            })(blackstone.lists, blackstone.typing, blackstone.Position);
+            
+            blackstone.List = (function(lists, typing, Superposition) {
+                
+                var List = typing.Type.inherit();
+                
+                List.constructor = function() {
+                    this.__list = new lists.List;
+                    this.__list.value = this;
+                };
+                
+                List.creator = function(prototype, type, prototypes) {
+                    
+                    // (superpositions... Superposition)
+                    prototype.remove = function() {
+                        return this.__list.remove.apply(this.__list, toNative(this, arguments));
+                    };
+                    
+                    // (superpositions... Superposition)
+                    prototype.append = function() {
+                        return this.__list.append.apply(this.__list, toNative(this, arguments));
+                    };
+                    
+                    // (superpositions... Superposition)
+                    prototype.prepend = function() {
+                        return this.__list.prepend.apply(this.__list, toNative(this, arguments));
+                    };
+                    
+                    // (handler Function⎨, options { sync Boolean, reverse Boolean, callback Function }⎬)
+                    prototype.each = function(handler, options) {
+                        
+                        this.__list.each(function(native, position) {
+                            this.native = native;
+                            this.superposition = native.value;
+                            handler.call(this, this.superposition, native, position);
+                            
+                            if (this.next) this.next();
+                        }, options);
+                        
+                    };
+                    
+                    prototype.first = function() {
+                        return this.__list.first? this.__list.first.value : undefined
+                    };
+                    
+                    prototype.last = function() {
+                        return this.__list.last? this.__list.last.value : undefined
+                    };
+                    
+                    prototype.length = function() {
+                        return this.__list.length;
+                    };
+                };
+                
+                return List;
+                
+            })(blackstone.lists, blackstone.typing, blackstone.Superposition);
+            
+        })();
     };
     
     // Blackstone.version String
