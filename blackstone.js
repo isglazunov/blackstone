@@ -624,7 +624,7 @@
                     
                     for (var a in arguments) {
                         if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
-                            args.push(arguments[a].__superprototype);
+                            args.push(arguments[a].__superposition);
                         }
                     }
                     
@@ -639,7 +639,7 @@
                     
                     for (var a in arguments) {
                         if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
-                            args.push(arguments[a].__superprototype);
+                            args.push(arguments[a].__superposition);
                         }
                     }
                     
@@ -754,16 +754,16 @@
                     Prototype.prototype.__type = type;
                     
                     // superposition
-                    var superprototype = new lists.Superposition;
+                    var superposition = new lists.Superposition;
                     
                     // superposition to prototype
-                    Prototype.prototype.__superprototype = superprototype;
+                    Prototype.prototype.__superposition = superposition;
                     
                     // constructor
                     var item = new Prototype;
                     
                     // prototype to superposition
-                    superprototype.value = item;
+                    superposition.value = item;
                     
                     if (lodash.isFunction(this.constructor)) this.constructor.call(item, attr, item, item.__type);
                     
@@ -797,15 +797,15 @@
                     // Hidden varibles
                     
                     // superposition
-                    var superprototype = new lists.Superposition;
+                    var superposition = new lists.Superposition;
                     
                     // superposition to prototype
-                    Prototype.prototype.__superprototype = superprototype;
+                    Prototype.prototype.__superposition = superposition;
                     
                     var type = new Prototype;
                     
                     // prototype to superposition
-                    superprototype.value = type;
+                    superposition.value = type;
                     
                     return type;
                 };
