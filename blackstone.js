@@ -680,6 +680,7 @@
                     
                     this.prototype = {};
                     this.constructor = undefined;
+                    this.inheritor = undefined;
                     
                     this.prototypes = new Prototypes
                 };
@@ -745,7 +746,10 @@
                         if (prototypes.all[p] instanceof Item) {
                             lodash.extend(Prototype.prototype, prototypes.all[p]);
                         } else if (prototypes.all[p] instanceof Type) {
-                            lodash.extend(Prototype.prototype, prototypes.all[p].prototype)
+                            lodash.extend(Prototype.prototype, prototypes.all[p].prototype);
+                            if (lodash.isFunction(prototypes.all[p].inheritor)) {
+                                prototypes.all[p].inheritor.call(item, item, item.__type);
+                            }
                         }
                     }
                     
