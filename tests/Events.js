@@ -17,10 +17,10 @@ describe('Blackstone Events', function() {
     });
     
     it('superhandler .bind .trigger', function(done) {
-        s1.bind(function(next, a, b) {
+        s1.bind(function(a, b) {
             a.should.be.true;
             b.should.be.false;
-            next();
+            this.next();
         }, {});
         
         s1.trigger([true, false], done);
@@ -29,14 +29,15 @@ describe('Blackstone Events', function() {
     it('superhandler.bind .trigger async', function(done) {
         var temp = false;
         
-        s1.bind(function(next, a, b) {
+        s1.bind(function(a, b) {
+            var self = this;
             a.should.be.true;
             b.should.be.false;
             setTimeout(function() {
                 temp = true;
-                next();
+                self.next();
             }, 50);
-        }, {});
+        });
         
         s1.trigger([true, false], function() {
             temp.should.be.true;
@@ -72,7 +73,7 @@ describe('Blackstone Events', function() {
         
         handlers.bind(superhandler).should.be.eql(superhandler);
         
-        handlers.list.first.superposition.superhandler.should.be.eql(superhandler);
+        handlers.list.first.superposition.value.should.be.eql(superhandler);
         handlers.list.first.should.be.eql(handlers.list.last);
     });
     
@@ -83,7 +84,7 @@ describe('Blackstone Events', function() {
             next();
         });
         
-        handlers.list.first.superposition.superhandler.should.be.eql(superhandler);
+        handlers.list.first.superposition.value.should.be.eql(superhandler);
         handlers.list.first.should.be.eql(handlers.list.last);
     });
     
@@ -94,20 +95,20 @@ describe('Blackstone Events', function() {
         
         var args = [0, 1];
         
-        handlers.bind(function(next, a, b) {
+        handlers.bind(function(a, b) {
             counter = counter+a+b;
-            setTimeout(next, 50);
+            setTimeout(this.next, 50);
         });
         
         handlers.bind(function(a, b) {
             counter = counter+a+b;
         }, { sync: true });
         
-        handlers.bind(function(superposition, next, a, b) {
+        handlers.bind(function(a, b) {
             counter = counter+a+b;
-            superposition.in(handlers).unbind();
-            next();
-        }, { self: true });
+            this.superhandler.in(handlers).unbind();
+            this.next();
+        });
         
         handlers.trigger(args, function() {
             handlers.trigger(args, function() {
@@ -124,20 +125,20 @@ describe('Blackstone Events', function() {
         
         var args = [0, 1];
         
-        emitter.bind('event', function(next, a, b) {
+        emitter.bind('event', function(a, b) {
             counter = counter+a+b;
-            setTimeout(next, 50);
+            setTimeout(this.next, 50);
         });
         
         emitter.bind('event', function(a, b) {
             counter = counter+a+b;
         }, { sync: true });
         
-        emitter.bind('event', function(superposition, next, a, b) {
+        emitter.bind('event', function(a, b) {
             counter = counter+a+b;
-            superposition.in(emitter.__event('event')).unbind();
-            next();
-        }, { self: true });
+            this.superhandler.in(emitter.__event('event')).unbind();
+            this.next();
+        });
         
         emitter.trigger('event', args, function() {
             emitter.trigger('event', args, function() {

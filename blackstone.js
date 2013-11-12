@@ -152,59 +152,76 @@
                 // (handler Function⎨, options { sync: Boolean, reverse: Boolean }⎬)
                 List.prototype.each = function(handler, _options) {
                     
+                    var list = this;
+                    
                     if (!lodash.isObject(_options)) var _options = {};
                     
                     var options = lodash.defaults(_options, {
                         sync: false,
-                        reverse: false
+                        reverse: false,
+                        callback: undefined
                     });
                     
+                    var counter = undefined;
+                    var position = undefined;
+                    var future = undefined
+                    
                     if (!options.reverse) {
-                        var now = this.first;
-                        var counter = 0;
+                        counter = 0;
+                        position = list.first;
+                        if (position) future = position.next;
                         
                         var move = function() {
-                            now = now.next;
-                        };
-                        
-                        var getCounter = function() {
-                            return counter++;
+                            position = position.next;
+                            future = position.next;
+                            counter++;
                         };
                     } else {
-                        var now = this.last;
-                        var counter = this.length-1;
+                        counter = list.length - 1;
+                        position = list.last;
+                        if (position) future = position.prev;
                         
                         var move = function() {
-                            now = now.prev;
-                        };
-                        
-                        var getCounter = function() {
-                            return counter--;
+                            position = position.prev;
+                            future = position.prev;
+                            counter--;
                         };
                     }
                     
                     var next = function() {
-                        move();
-                        iteration();
+                        if (future) {
+                            move();
+                            iteration();
+                        } else if (options.callback) options.callback();
                     };
+                    
                     if (!options.sync) {
-                        var handling = function() {
-                            handler(next, getCounter(), now.superposition, now);
+                        var iteration = function() {
+                            
+                            handler.call({
+                                counter: counter,
+                                position: position,
+                                superposition: position.superposition,
+                                list: list,
+                                next: next
+                            }, position.superposition, position, list);
                         };
                     } else {
-                        var handling = function() {
-                            handler(getCounter(), now.superposition, now);
-                            next();
+                        var iteration = function() {
+                            handler.call({
+                                counter: counter,
+                                position: position,
+                                superposition: position.superposition,
+                                list: list
+                            }, position.superposition, position, list);
+                            
+                            if (future) next();
+                            else if (options.callback) options.callback();
                         };
                     }
                     
-                    var iteration = function() {
-                        if (now) {
-                            handling();
-                        } else handler();
-                    };
-                    
-                    iteration();
+                    if (list.length > 0) iteration();
+                    else if (options.callback) options.callback();
                     
                 };
                 
@@ -405,7 +422,6 @@
                 
                 var defaults = {
                     sync: false,
-                    self: false,
                     this: false
                 };
                 
@@ -457,7 +473,7 @@
                     
                     var superhandler = this;
                     
-                    var applyArgs = [];
+                    // var applyArgs = [];
                     
                     var alreadyNext = false;
                     
@@ -468,21 +484,22 @@
                         }
                     };
                     
-                    if (superhandler.options.self) applyArgs.push(superhandler);
+                    // applyArgs.push(superhandler);
                     
-                    if (!superhandler.options.sync) applyArgs.push(next);
+                    // if (!superhandler.options.sync) applyArgs.push(next);
                     
-                    applyArgs.push.apply(applyArgs, args);
+                    // applyArgs.push.apply(applyArgs, args);
                     
-                    var caller = function() {
-                        superhandler.method.apply(superhandler.options.this, applyArgs);
-                    };
-                    
-                    if (superhandler.options.sync) {
-                        caller();
-                        next();
+                    if (!superhandler.options.sync) {
+                        superhandler.method.apply({
+                            next: next,
+                            superhandler: superhandler
+                        }, args);
                     } else {
-                        caller();
+                        superhandler.method.apply({
+                            superhandler: superhandler
+                        }, args);
+                        next();
                     }
                     
                 };
@@ -506,11 +523,9 @@
                 // (args Array⎨, callback Function⎬)
                 Handlers.prototype.trigger = function(args, callback) {
                     
-                    this.list.each(function(next, counter, superposition, position) {
-                        if (next) {
-                            superposition.value.trigger(args, next);
-                        } else if (callback) callback();
-                    });
+                    this.list.each(function(superposition, position) {
+                        superposition.value.trigger(args, this.next);
+                    }, {callback: callback});
                     
                 };
                 
@@ -650,19 +665,12 @@
                 // (handler Function⎨, options Object⎬)
                 Prototypes.prototype.each = function(handler, options) {
                     
-                    if (options.sync) {
-                        var handling = function(counter, superposition) {
-                            if (superposition) handler(superposition.value);
-                            else handler();
-                        };
-                    } else {
-                        var handling = function(next, counter, superposition) {
-                            if (superposition) handler(next, superposition.value);
-                            else handler();
-                        };
-                    }
-                    
-                    this.list.each(handling, options);
+                    this.list.each(function(superposition, position) {
+                        this.prototype = superposition.value
+                        handler.call(this, superposition.value, superposition, position);
+                        
+                        if (this.next) this.next();
+                    }, options);
                     
                 };
                 

@@ -142,52 +142,69 @@ describe('Blackstone Lists', function() {
         l1.length.should.be.eql(8);
     });
     
-    it('list.each', function() {
-        var eached = false;
-        l1.each(function(next, counter, sup) {
-            if (counter == 0) sup.should.be.eql(s6);
-            else if (counter == 1) sup.should.be.eql(s3);
-            else if (counter == 2) sup.should.be.eql(s8);
-            else if (counter == 3) sup.should.be.eql(s7);
-            else if (counter == 4) sup.should.be.eql(s4);
-            else if (counter == 5) sup.should.be.eql(s2);
-            else if (counter == 6) sup.should.be.eql(s1);
-            else if (counter == 7) sup.should.be.eql(s5);
-            else eached = true;
+    var Eql = function(iter, now) {
+        return function(sup) {
+            return now.id == sup.id;
+        };
+    };
     
-            if (next) next();
-        });
-        eached.should.be.true;
+    it('list.each', function(done) {
+        var eached = false;
+        l1.each(function(sup, position) {
+            var eql = Eql(this, sup);
+            
+            if (this.counter == 0) eql(s6);
+            if (this.counter == 1) eql(s3);
+            if (this.counter == 2) eql(s8);
+            if (this.counter == 3) eql(s7);
+            if (this.counter == 4) eql(s4);
+            if (this.counter == 5) eql(s2);
+            if (this.counter == 6) eql(s1);
+            if (this.counter == 7) eql(s5);
+            
+            if (this.counter == 7) eached = true;
+    
+            if (this.next) this.next();
+        }, {callback: function() {
+            eached.should.be.true;
+            done();
+        }});
     });
     
     it('list.each sync', function() {
         var eached = false;
-        l1.each(function(counter, sup) {
-            if (counter == 0) sup.should.be.eql(s6);
-            else if (counter == 1) sup.should.be.eql(s3);
-            else if (counter == 2) sup.should.be.eql(s8);
-            else if (counter == 3) sup.should.be.eql(s7);
-            else if (counter == 4) sup.should.be.eql(s4);
-            else if (counter == 5) sup.should.be.eql(s2);
-            else if (counter == 6) sup.should.be.eql(s1);
-            else if (counter == 7) sup.should.be.eql(s5);
-            else eached = true;
+        l1.each(function(sup, position) {
+            var eql = Eql(this, sup);
+            
+            if (this.counter == 0) eql(s6);
+            if (this.counter == 1) eql(s3);
+            if (this.counter == 2) eql(s8);
+            if (this.counter == 3) eql(s7);
+            if (this.counter == 4) eql(s4);
+            if (this.counter == 5) eql(s2);
+            if (this.counter == 6) eql(s1);
+            if (this.counter == 7) eql(s5);
+            
+            if (this.counter == 7) eached = true;
         }, { sync: true });
         eached.should.be.true;
     });
     
     it('list.each reverse', function() {
         var eached = false;
-        l1.each(function(counter, sup) {
-            if (counter == 0) sup.should.be.eql(s5);
-            else if (counter == 1) sup.should.be.eql(s1);
-            else if (counter == 2) sup.should.be.eql(s2);
-            else if (counter == 3) sup.should.be.eql(s4);
-            else if (counter == 4) sup.should.be.eql(s7);
-            else if (counter == 5) sup.should.be.eql(s8);
-            else if (counter == 6) sup.should.be.eql(s3);
-            else if (counter == 7) sup.should.be.eql(s6);
-            else eached = true;
+        l1.each(function(sup, position) {
+            var eql = Eql(this, sup);
+            
+            if (this.counter == 0) eql(s5);
+            if (this.counter == 1) eql(s1);
+            if (this.counter == 2) eql(s2);
+            if (this.counter == 3) eql(s4);
+            if (this.counter == 4) eql(s7);
+            if (this.counter == 5) eql(s8);
+            if (this.counter == 6) eql(s3);
+            if (this.counter == 7) eql(s6);
+            
+            if (this.counter == 7) eached = true;
         }, { reverse: true });
         eached.should.be.true;
     });
