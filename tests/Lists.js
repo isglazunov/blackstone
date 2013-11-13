@@ -149,63 +149,67 @@ describe('Blackstone Lists', function() {
     };
     
     it('list.each', function(done) {
-        var eached = false;
-        l1.each(function(sup, position) {
+        var counter = 0;
+        l1.each(function(sup) {
             var eql = Eql(this, sup);
             
-            if (this.counter == 0) eql(s6);
-            if (this.counter == 1) eql(s3);
-            if (this.counter == 2) eql(s8);
-            if (this.counter == 3) eql(s7);
-            if (this.counter == 4) eql(s4);
-            if (this.counter == 5) eql(s2);
-            if (this.counter == 6) eql(s1);
-            if (this.counter == 7) eql(s5);
+            if (counter == 0) eql(s6);
+            if (counter == 1) eql(s3);
+            if (counter == 2) eql(s8);
+            if (counter == 3) eql(s7);
+            if (counter == 4) eql(s4);
+            if (counter == 5) eql(s2);
+            if (counter == 6) eql(s1);
+            if (counter == 7) eql(s5);
             
-            if (this.counter == 7) eached = true;
+            counter++;
     
             if (this.next) this.next();
-        }, {callback: function() {
-            eached.should.be.true;
+        }, { callback: function() {
+            counter.should.be.eql(8);
             done();
-        }});
+        } });
     });
     
     it('list.each sync', function() {
-        var eached = false;
-        l1.each(function(sup, position) {
+        var counter = 0;
+        l1.each(function(sup) {
             var eql = Eql(this, sup);
             
-            if (this.counter == 0) eql(s6);
-            if (this.counter == 1) eql(s3);
-            if (this.counter == 2) eql(s8);
-            if (this.counter == 3) eql(s7);
-            if (this.counter == 4) eql(s4);
-            if (this.counter == 5) eql(s2);
-            if (this.counter == 6) eql(s1);
-            if (this.counter == 7) eql(s5);
+            if (counter == 0) eql(s6);
+            if (counter == 1) eql(s3);
+            if (counter == 2) eql(s8);
+            if (counter == 3) eql(s7);
+            if (counter == 4) eql(s4);
+            if (counter == 5) eql(s2);
+            if (counter == 6) eql(s1);
+            if (counter == 7) eql(s5);
             
-            if (this.counter == 7) eached = true;
+            counter++;
+            
         }, { sync: true });
-        eached.should.be.true;
+        counter.should.be.eql(8);
     });
     
     it('list.each reverse', function() {
-        var eached = false;
-        l1.each(function(sup, position) {
+        var counter = 0;
+        l1.each(function(sup) {
             var eql = Eql(this, sup);
             
-            if (this.counter == 0) eql(s5);
-            if (this.counter == 1) eql(s1);
-            if (this.counter == 2) eql(s2);
-            if (this.counter == 3) eql(s4);
-            if (this.counter == 4) eql(s7);
-            if (this.counter == 5) eql(s8);
-            if (this.counter == 6) eql(s3);
-            if (this.counter == 7) eql(s6);
+            if (counter == 0) eql(s5);
+            if (counter == 1) eql(s1);
+            if (counter == 2) eql(s2);
+            if (counter == 3) eql(s4);
+            if (counter == 4) eql(s7);
+            if (counter == 5) eql(s8);
+            if (counter == 6) eql(s3);
+            if (counter == 7) eql(s6);
             
-            if (this.counter == 7) eached = true;
+            counter++;
+            
+            if (this.next) this.next();
         }, { reverse: true });
-        eached.should.be.true;
+        
+        counter.should.be.eql(8);
     });
 });
