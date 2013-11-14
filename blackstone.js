@@ -1067,11 +1067,13 @@
                 var List = Type.inherit();
                 
                 // ()
-                List.constructor = function() {
+                List.constructor = List.inheritor = function() {
                     
                     // Mutual binding
-                    this.__native = new lists.List;
-                    this.__native.value = this;
+                    if (this.__native) {
+                        this.__native = new lists.List;
+                        this.__native.value = this;
+                    }
                 };
                 
                 List.creator = function(prototype) {
@@ -1412,13 +1414,21 @@
                 
             })(typing.Type);
             
+            Typing.Documents = (function(Type) {
+                
+                var Documents = Type.inherit();
+                
+                Documents.prototypes.include(Typing.List);
+                
+                return Documents;
+                
+            })(typing.Type);
+            
             Typing.Document = (function(Type, Data) {
                 
-                var Document = Data.inherit();
+                var Document = Type.inherit();
                 
-                Document.creator = function() {
-                    
-                };
+                Document.prototypes.include(Data, Typing.Superposition);
                 
                 return Document;
                 
