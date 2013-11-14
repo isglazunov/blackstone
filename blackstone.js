@@ -737,7 +737,7 @@
                 
                 // (attr Array⎨, callback.apply(item, attr) Function⎬)
                 // => item Item
-                // 'new' (attr...)
+                // 'new' (item, attr)
                 // .constructor.apply(item, attr, item, item.__type);
                 Type.prototype.new = function(attr, callback) {
                     
@@ -794,7 +794,7 @@
                     
                     // events
                     async.nextTick(function() {
-                        type.trigger('new', attr, callback);
+                        type.trigger('new', [item, attr], callback);
                     });
                     
                     return item;
@@ -1230,11 +1230,11 @@
                 
                 Data.defaults = {};
                 
-                Data.constructor = function() {
-                    this.__data = {};
+                Data.constructor = Data.inheritor = function() {
+                    if (!this.__data) this.__data = {};
                     
                     // The values will be supplanted when receiving data automatically.
-                    this.defaults = {};
+                    if (!this.defaults) this.defaults = {};
                 };
                 
                 Data.creator = function(prototype) {
@@ -1411,6 +1411,18 @@
                 return Data;
                 
             })(typing.Type);
+            
+            Typing.Document = (function(Type, Data) {
+                
+                var Document = Data.inherit();
+                
+                Document.creator = function() {
+                    
+                };
+                
+                return Document;
+                
+            })(typing.Type, Typing.Data);
                 
             return Typing;
             
