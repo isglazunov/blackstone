@@ -1279,6 +1279,21 @@
                     
                     // (source Object⎨, callback(data, before) Function⎬)
                     // data 'extend' (data, before)
+                    // callback (data, before)
+                    prototype.set = function(source, callback) {
+                        var self = this;
+                        
+                        var before = __get(self, self.__data, { defaults: false, clone: true });
+                        self.__data = lodash.cloneDeep(source);
+                        var data = __get(self, self.__data);
+                        
+                        self.trigger('set', [data, before], function() {
+                            if (callback) callback(data, before);
+                        });
+                    };
+                    
+                    // (source Object⎨, callback(data, before) Function⎬)
+                    // data 'extend' (data, before)
                     // data 'set' (data, before)
                     // callback (data, before)
                     prototype.extend = function(source, callback) {
@@ -1289,6 +1304,24 @@
                         var data = __get(self, self.__data);
                         
                         self.trigger('extend', [data, before], function() {
+                            self.trigger('set', [data, before], function() {
+                                if (callback) callback(data, before);
+                            });
+                        });
+                    };
+                    
+                    // (source Object⎨, callback(data, before) Function⎬)
+                    // data 'merge' (data, before)
+                    // data 'set' (data, before)
+                    // callback (data, before)
+                    prototype.merge = function(source, callback) {
+                        var self = this;
+                        
+                        var before = __get(self, self.__data, { defaults: false, clone: true });
+                        lodash.extend(self.__data, source);
+                        var data = __get(self, self.__data);
+                        
+                        self.trigger('merge', [data, before], function() {
                             self.trigger('set', [data, before], function() {
                                 if (callback) callback(data, before);
                             });
