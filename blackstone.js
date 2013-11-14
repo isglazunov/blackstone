@@ -913,8 +913,7 @@
                         
                         return nativeResult;
                     };
-                    
-                    // (superpositions... Superposition[, callback(superpositions... Superposition) Function])
+                    // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
                     // position 'append' (superpositions... Superposition)
                     // position.super 'append' (position Position, superpositions[Superposition] Array)
                     // position.super 'add' (position Position, superpositions[Superposition] Array)
@@ -959,7 +958,7 @@
                         return nativeResult;
                     };
                     
-                    // (superpositions... Superposition[, callback(superpositions... Superposition) Function])
+                    // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
                     // position 'prepend' (superpositions... Superposition)
                     // position.super 'prepend' (position Position, superpositions[Superposition] Array)
                     // position.super 'add' (position Position, superpositions[Superposition] Array)
@@ -1077,7 +1076,7 @@
                 
                 List.creator = function(prototype) {
                     
-                    // (superpositions... Superposition[, callback(superpositions... Superposition) Function])
+                    // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
                     // position 'remove' (position Position)
                     // superposition 'remove' (position Position)
                     // list 'remove' (position Position)
@@ -1101,7 +1100,7 @@
                         return list.length();
                     };
                     
-                    // (superpositions... Superposition[, callback(superpositions... Superposition) Function])
+                    // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
                     // ~ position 'append' (superpositions... Superposition)
                     // ~ superposition 'append' (position Position, superpositions[Superposition] Array)
                     // ~ superposition 'add' (position Position, superpositions[Superposition] Array)
@@ -1148,7 +1147,7 @@
                         return list.length();
                     };
                     
-                    // (superpositions... Superposition[, callback(superpositions... Superposition) Function])
+                    // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
                     // ~ position 'prepend' (superpositions... Superposition)
                     // ~ superposition 'prepend' (position Position, superpositions[Superposition] Array)
                     // ~ superposition 'add' (position Position, superpositions[Superposition] Array)
@@ -1222,6 +1221,145 @@
                 };
                 
                 return List;
+                
+            })(typing.Type);
+            
+            Typing.Data = (function(Type) {
+                
+                var Data = Type.inherit();
+                
+                Data.defaults = {};
+                
+                Data.constructor = function() {
+                    this.__data = {};
+                    
+                    // The values will be supplanted when receiving data automatically.
+                    this.defaults = {};
+                };
+                
+                Data.creator = function(prototype) {
+                    
+                    // (⎨ options: { defaults: true, clone: true } ⎬)
+                    var __get = function(data, __data, options) {
+                        
+                        var options = lodash.defaults(
+                            lodash.isObject(options)? options : {},
+                            { defaults: true, clone: true }
+                        );
+                        
+                        var result = __data;
+                        
+                        // Defaults
+                        if (options.defaults) {
+                            if (lodash.isObject(data.defaults) && !lodash.isEmpty(data.defaults)) {
+                                result = lodash.defaults(__data, data.defaults);
+                            }
+                        }
+                        
+                        // Clone
+                        if (options.clone) {
+                            var result = lodash.cloneDeep(result);
+                        }
+                        
+                        return result;
+                    };
+                    
+                    // (⎨ options ~ adapter⎨, callback Function ⎬⎬)
+                    // data 'get' (data)
+                    // callback (data)
+                    prototype.get = function(options, callback) {
+                        var self = this;
+                        
+                        return __get(self, self.__data, options);
+                        
+                        self.trigger('get', [data], function() {
+                            if (callback) callback(data);
+                        });
+                    };
+                    
+                    // (source Object⎨, callback(data, before) Function⎬)
+                    // data 'extend' (data, before)
+                    // data 'set' (data, before)
+                    // callback (data, before)
+                    prototype.extend = function(source, callback) {
+                        var self = this;
+                        
+                        var before = __get(self, self.__data, { defaults: false, clone: true });
+                        lodash.extend(self.__data, source);
+                        var data = __get(self, self.__data);
+                        
+                        self.trigger('extend', [data, before], function() {
+                            self.trigger('set', [data, before], function() {
+                                if (callback) callback(data, before);
+                            });
+                        });
+                    };
+                    
+                    // (property String⎨, options ~ adapter⎨, callback Function ⎬⎬)
+                    // data 'has' (result Boolean, data)
+                    // data 'get' (data)
+                    // callback (result Boolean, data)
+                    // => Boolean
+                    prototype.has = function(property, options, callback) {
+                        var self = this;
+                        
+                        var data = __get(self, self.__data, options);
+                        var result = lodash.has(data, property);
+                        
+                        self.trigger('has', [result, data], function() {
+                            self.trigger('get', [data], function() {
+                                if (callback) callback(result, data);
+                            });
+                        });
+                        
+                        return result;
+                    };
+                    
+                    // (⎨ options ~ adapter⎨, callback Function ⎬⎬⎬)
+                    // data 'keys' (keys[String] Array, data)
+                    // data 'get' (data)
+                    // callback (keys[String] Array, data)
+                    // => [String] Array
+                    prototype.keys = function(options, callback) {
+                        var self = this;
+                        
+                        var data = __get(self, self.__data, options);
+                        var result = lodash.keys(data);
+                        
+                        self.trigger('keys', [result, data], function() {
+                            self.trigger('get', [data], function() {
+                                if (callback) callback(result, data);
+                            });
+                        });
+                        
+                        return result;
+                    };
+                    
+                    // (⎨ options ~ adapter⎨, callback Function ⎬⎬⎬)
+                    // data 'values' (keys Array, data)
+                    // data 'get' (data)
+                    // callback (keys Array, data)
+                    // => [String] Array
+                    prototype.values = function(options, callback) {
+                        var self = this;
+                        
+                        var data = __get(self, self.__data, options);
+                        var result = lodash.values(data);
+                        
+                        self.trigger('keys', [result, data], function() {
+                            self.trigger('get', [data], function() {
+                                if (callback) callback(result, data);
+                            });
+                        });
+                        
+                        return result;
+                    };
+                    
+                    // ()
+                    
+                };
+                
+                return Data;
                 
             })(typing.Type);
                 
