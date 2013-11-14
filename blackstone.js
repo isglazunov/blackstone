@@ -1278,7 +1278,7 @@
                     };
                     
                     // (source Object⎨, callback(data, before) Function⎬)
-                    // data 'extend' (data, before)
+                    // data 'set' (data, before)
                     // callback (data, before)
                     prototype.set = function(source, callback) {
                         var self = this;
@@ -1289,6 +1289,24 @@
                         
                         self.trigger('set', [data, before], function() {
                             if (callback) callback(data, before);
+                        });
+                    };
+                    
+                    // (⎨callback(data, before) Function⎬)
+                    // data 'unset' (data, before)
+                    // data 'set' (data, before)
+                    // callback (data, before)
+                    prototype.unset = function(callback) {
+                        var self = this;
+                        
+                        var before = __get(self, self.__data, { defaults: false, clone: true });
+                        self.__data = {};
+                        var data = __get(self, self.__data);
+                        
+                        self.trigger('unset', [data, before], function() {
+                            self.trigger('set', [data, before], function() {
+                                if (callback) callback(data, before);
+                            });
                         });
                     };
                     
@@ -1387,8 +1405,6 @@
                         
                         return result;
                     };
-                    
-                    // ()
                     
                 };
                 
