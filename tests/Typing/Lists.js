@@ -13,7 +13,7 @@ describe('Blackstone Lists', function() {
     it('list.append', function() {
         var l = List.new();
         
-        s0 = Super.new();
+        var s0 = Super.new();
         
         l.append(s0);
         
@@ -53,7 +53,7 @@ describe('Blackstone Lists', function() {
     it('list.prepend', function() {
         var l = List.new();
         
-        s0 = Super.new();
+        var s0 = Super.new();
         
         l.prepend(s0);
         
@@ -93,7 +93,7 @@ describe('Blackstone Lists', function() {
     it('position.append', function() {
         var l = List.new();
         
-        s0 = Super.new();
+        var s0 = Super.new();
         
         l.append(s0);
         
@@ -121,7 +121,7 @@ describe('Blackstone Lists', function() {
     it('position.prepend', function() {
         var l = List.new();
         
-        s0 = Super.new();
+        var s0 = Super.new();
         
         l.prepend(s0);
         
@@ -149,9 +149,9 @@ describe('Blackstone Lists', function() {
     it('position.remove', function() {
         var l = List.new();
         
-        s0 = Super.new();
-        s1 = Super.new();
-        s2 = Super.new();
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
         
         l.append(s0, s1, s2);
         
@@ -166,10 +166,10 @@ describe('Blackstone Lists', function() {
     it('list.remove', function() {
         var l = List.new();
         
-        s0 = Super.new();
-        s1 = Super.new();
-        s2 = Super.new();
-        s3 = Super.new();
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
+        var s3 = Super.new();
         
         l.append(s0, s1, s2, s3);
         
@@ -185,10 +185,10 @@ describe('Blackstone Lists', function() {
         
         var l = List.new();
         
-        s0 = Super.new();
-        s1 = Super.new();
-        s2 = Super.new();
-        s3 = Super.new();
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
+        var s3 = Super.new();
         
         l.append(s0, s1, s2, s3);
     
@@ -251,5 +251,69 @@ describe('Blackstone Lists', function() {
             counter.should.be.eql(4);
         });
         
+    });
+    
+    it('position.before', function() {
+        var l = List.new();
+        
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
+        
+        l.append(s0, s1, s2);
+        
+        s2.in(l).before(s0);
+        
+        eql(l.first().super(), s2);
+        eql(l.first().next().super(), s0);
+        eql(l.first().next().next().super(), s1);
+        eql(l.last().super(), s1);
+        eql(l.last().prev().super(), s0);
+        eql(l.last().prev().prev().super(), s2);
+        
+        var s3 = Super.new();
+        
+        s3.in(l).before(s2);
+        
+        eql(l.first().super(), s3);
+        eql(l.first().next().super(), s2);
+        eql(l.first().next().next().super(), s0);
+        eql(l.first().next().next().next().super(), s1);
+        eql(l.last().super(), s1);
+        eql(l.last().prev().super(), s0);
+        eql(l.last().prev().prev().super(), s2);
+        eql(l.last().prev().prev().prev().super(), s3);
+    });
+    
+    it('position.after', function() {
+        var l = List.new();
+        
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
+        
+        l.append(s0, s1, s2);
+        
+        s2.in(l).after(s0);
+        
+        eql(l.first().super(), s0);
+        eql(l.first().next().super(), s2);
+        eql(l.first().next().next().super(), s1);
+        eql(l.last().super(), s1);
+        eql(l.last().prev().super(), s2);
+        eql(l.last().prev().prev().super(), s0);
+        
+        var s3 = Super.new();
+        
+        s3.in(l).after(s2);
+        
+        eql(l.first().super(), s0);
+        eql(l.first().next().super(), s2);
+        eql(l.first().next().next().super(), s3);
+        eql(l.first().next().next().next().super(), s1);
+        eql(l.last().super(), s1);
+        eql(l.last().prev().super(), s3);
+        eql(l.last().prev().prev().super(), s2);
+        eql(l.last().prev().prev().prev().super(), s0);
     });
 });

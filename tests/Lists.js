@@ -14,7 +14,7 @@ describe('Blackstone Lists', function() {
     it('list.append', function() {
         var l = new List;
         
-        s0 = new Super;
+        var s0 = new Super;
         
         l.append(s0);
         
@@ -54,7 +54,7 @@ describe('Blackstone Lists', function() {
     it('list.prepend', function() {
         var l = new List;
         
-        s0 = new Super;
+        var s0 = new Super;
         
         l.prepend(s0);
         
@@ -94,7 +94,7 @@ describe('Blackstone Lists', function() {
     it('position.append', function() {
         var l = new List;
         
-        s0 = new Super;
+        var s0 = new Super;
         
         l.append(s0);
         
@@ -122,7 +122,7 @@ describe('Blackstone Lists', function() {
     it('position.prepend', function() {
         var l = new List;
         
-        s0 = new Super;
+        var s0 = new Super;
         
         l.prepend(s0);
         
@@ -150,9 +150,9 @@ describe('Blackstone Lists', function() {
     it('position.remove', function() {
         var l = new List;
         
-        s0 = new Super;
-        s1 = new Super;
-        s2 = new Super;
+        var s0 = new Super;
+        var s1 = new Super;
+        var s2 = new Super;
         
         l.append(s0, s1, s2);
         
@@ -167,10 +167,10 @@ describe('Blackstone Lists', function() {
     it('list.remove', function() {
         var l = new List;
         
-        s0 = new Super;
-        s1 = new Super;
-        s2 = new Super;
-        s3 = new Super;
+        var s0 = new Super;
+        var s1 = new Super;
+        var s2 = new Super;
+        var s3 = new Super;
         
         l.append(s0, s1, s2, s3);
         
@@ -186,10 +186,10 @@ describe('Blackstone Lists', function() {
         
         var l = new List;
         
-        s0 = new Super;
-        s1 = new Super;
-        s2 = new Super;
-        s3 = new Super;
+        var s0 = new Super;
+        var s1 = new Super;
+        var s2 = new Super;
+        var s3 = new Super;
         
         l.append(s0, s1, s2, s3);
     
