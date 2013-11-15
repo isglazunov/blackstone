@@ -1,11 +1,6 @@
 // blackstone:develop
 // https://github.com/isglazunov/blackstone/tree/develop
 
-// Commenting Rules
-
-// Headlines without full stops and commas, and separated indented.
-// Descriptions with dots and commas.
-
 // Help
 
 // Uses the prefix __ to indicate the system variables. Use the system variables with the understanding!
