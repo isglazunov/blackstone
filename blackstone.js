@@ -612,9 +612,17 @@
                     for (var a in arguments) {
                         var found = false;
                         
-                        for (var p in prototypes.all) {
-                            if (prototypes.all[p] instanceof typing.Type) {
-                                if (prototypes.all[p].id == arguments[a].id) found = true;
+                        if (this.__type.id == arguments[a].id) { // this type
+                            found = true;
+                            
+                        } else { // this type types
+                            for (var p in prototypes.all) {
+                                if (prototypes.all[p] instanceof typing.Type) {
+                                    if (prototypes.all[p].id == arguments[a].id) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
                             }
                         }
                         
@@ -642,9 +650,9 @@
                     var args = [];
                     
                     for (var a in arguments) {
-                        if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
+                        if (arguments[a] instanceof typing.Type) {
                             args.push(arguments[a].__super);
-                        }
+                        } else throw new TypeError('should be instanceof Type');
                     }
                     
                     this.list.append.apply(this.list, args);
@@ -657,9 +665,9 @@
                     var args = [];
                     
                     for (var a in arguments) {
-                        if (arguments[a] instanceof typing.Item || arguments[a] instanceof typing.Type) {
+                        if (arguments[a] instanceof typing.Type) {
                             args.push(arguments[a].__super);
-                        }
+                        } else throw new TypeError('should be instanceof Type');
                     }
                     
                     this.list.remove.apply(this.list, args);
@@ -691,45 +699,48 @@
                     this.id = id++;
                     
                     this.prototype = {};
+                    
+                    // .apply(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                     this.constructor = undefined;
+                    
+                    // .apply(item Item, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                     this.inheritor = undefined;
+                    
+                    // .apply(prototype Object, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                     this.creator = undefined;
                     
                     this.prototypes = new Prototypes
                 };
                 
-                // (results { all: [Item, Type] }, now Item/Type)
-                var __prototypes = function(results, now) {
+                // (results { all: [Type] }, now Item/Type, notThis = false)
+                var __prototypes = function(results, now, notThis) {
                     
-                    if (now instanceof Item) {
-                        __prototypes(results, now.__type);
-                        
-                        results.all.push(now);
-                        
-                    } else if (now instanceof Type) {
+                    if (now instanceof Type) {
                         
                         if (!results.types[now.id]) {
-                            results.types[now.id] = now;
+                            if (!notThis) results.types[now.id] = now;
                             
                             now.prototypes.each(function(prototype) {
                                 if (prototype) __prototypes(results, prototype);
                             }, { sync: true })
                             
-                            results.all.push(now);
+                            if (!notThis) results.all.push(now);
                         }
                     }
                     
                 };
                 
-                // ()
-                // => { all: [Item, Type], types: { id: Type } }
-                Type.prototype.__prototypes = function() {
+                // (notThis = true Boolean)
+                // => { all: [Type], types: { id: Type } }
+                Type.prototype.__prototypes = function(notThis) {
+                    
+                    if (!lodash.isBoolean(notThis)) var notThis = true;
                     
                     var results = {
                         all: [], types: {}
                     }
                     
-                    __prototypes(results, this);
+                    __prototypes(results, this, notThis);
                     
                     return results;
                     
@@ -737,44 +748,72 @@
                 
                 // (attr Array⎨, callback.apply(item, attr) Function⎬)
                 // => item Item
-                // 'new' (item, attr)
-                // .constructor.apply(item, attr, item, item.__type);
+                // .constructor.apply(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                // 'new' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 Type.prototype.new = function(attr, callback) {
                     
                     var type = this;
                     
                     var prototypes = type.__prototypes();
                     
-                    // prototype
+                    // prototype // start
+                    
+                    // __prototype // start
+                    
+                    var __prototype = {};
+                    
+                    lodash.extend(__prototype, new events.Emitter);
+                    lodash.extend(__prototype, events.Emitter.prototype);
+                    
+                    lodash.extend(__prototype, type.prototype);
+                    
+                    __prototype.__type = type;
+                    
+                    // __super // start
+                    
+                    var superposition = new lists.Superposition;
+                    __prototype.__super = superposition;
+                    
+                    // __super // end
+                    
+                    // __prototype // end
+                    
+                    // __prototypes // start
+                    
+                    var __prototypes = {};
+                    
+                    for (var p in prototypes.all) {
+                        if (prototypes.all[p] instanceof Type) {
+                            lodash.extend(__prototypes, prototypes.all[p].prototype);
+                        }
+                    }
+                    
+                    // __prototypes // end
+                    
                     var Prototype = function() {};
                     
                     Prototype.prototype = new Item;
                     
-                    lodash.extend(Prototype.prototype, new events.Emitter);
-                    lodash.extend(Prototype.prototype, events.Emitter.prototype);
+                    lodash.extend(Prototype.prototype, __prototypes);
+                    lodash.extend(Prototype.prototype, __prototype);
                     
-                    lodash.extend(Prototype.prototype, type.prototype);
+                    // creators // start
+                    
+                    if (lodash.isFunction(type.creator)) {
+                        type.creator.call(Prototype.prototype, Prototype.prototype, __prototype, __prototypes, type, prototypes);
+                    }
                     
                     for (var p in prototypes.all) {
-                        if (prototypes.all[p] instanceof Item) {
-                            lodash.extend(Prototype.prototype, prototypes.all[p]);
-                        } else if (prototypes.all[p] instanceof Type) {
-                            lodash.extend(Prototype.prototype, prototypes.all[p].prototype);
+                        if (prototypes.all[p] instanceof Type) {
                             if (lodash.isFunction(prototypes.all[p].creator)) {
-                                prototypes.all[p].creator.call(Prototype.prototype, Prototype.prototype, type, prototypes);
+                                prototypes.all[p].creator.call(Prototype.prototype, Prototype.prototype, __prototype, __prototypes, type, prototypes);
                             }
                         }
                     }
                     
-                    // Hidden varibles
+                    // creators // end
                     
-                    Prototype.prototype.__type = type;
-                    
-                    // superposition
-                    var superposition = new lists.Superposition;
-                    
-                    // superposition to prototype
-                    Prototype.prototype.__super = superposition;
+                    // prototype // end
                     
                     // constructor
                     var item = new Prototype;
@@ -785,16 +824,16 @@
                     for (var p in prototypes.all) {
                         if (prototypes.all[p] instanceof Type) {
                             if (lodash.isFunction(prototypes.all[p].inheritor)) {
-                                prototypes.all[p].inheritor.call(item, item, item.__type, prototypes);
+                                prototypes.all[p].inheritor.call(item, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes);
                             }
                         }
                     }
                     
-                    if (lodash.isFunction(this.constructor)) this.constructor.call(item, attr, item, item.__type, prototypes);
+                    if (lodash.isFunction(this.constructor)) this.constructor.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes);
                     
                     // events
                     async.nextTick(function() {
-                        type.trigger('new', [item, attr], callback);
+                        type.trigger('new', [attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes], callback);
                     });
                     
                     return item;

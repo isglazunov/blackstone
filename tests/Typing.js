@@ -23,7 +23,7 @@ describe('Blackstone Typing', function() {
         
     });
     
-    it('include item', function() {
+    it('include type', function() {
         
         var A = Type.inherit();
         
@@ -31,6 +31,10 @@ describe('Blackstone Typing', function() {
         
         A.constructor = function(arg) {
             this._a = arg;
+        };
+        
+        A.inheritor = function() {
+            A.constructor.call(this, true);
         };
         
         var B = Type.inherit();
@@ -41,7 +45,11 @@ describe('Blackstone Typing', function() {
             this._b = arg;
         };
         
-        B.prototypes.include(A.new(true));
+        B.inheritor = function() {
+            B.constructor.call(this, false);
+        };
+        
+        B.prototypes.include(A);
         
         var b = B.new(false);
         
@@ -53,7 +61,7 @@ describe('Blackstone Typing', function() {
         
     });
     
-    it('nested include item', function() {
+    it('nested include type', function() {
         
         var A = Type.inherit();
         
@@ -61,6 +69,10 @@ describe('Blackstone Typing', function() {
         
         A.constructor = function(arg) {
             this._a = arg;
+        };
+        
+        A.inheritor = function() {
+            A.constructor.call(this, true);
         };
         
         var C = Type.inherit();
@@ -71,6 +83,10 @@ describe('Blackstone Typing', function() {
             this._c = arg;
         };
         
+        C.inheritor = function() {
+            C.constructor.call(this, true);
+        };
+        
         var D = Type.inherit();
         
         D.prototype.__d = false;
@@ -79,7 +95,11 @@ describe('Blackstone Typing', function() {
             this._d = arg;
         };
         
-        D.prototypes.include(C.new(true));
+        D.inheritor = function() {
+            D.constructor.call(this, false);
+        };
+        
+        D.prototypes.include(C);
         
         var B = Type.inherit();
         
@@ -89,7 +109,7 @@ describe('Blackstone Typing', function() {
             this._b = arg;
         };
         
-        B.prototypes.include(A.new(true), D.new(false));
+        B.prototypes.include(A, D);
         
         var b = B.new(false);
         
@@ -98,59 +118,6 @@ describe('Blackstone Typing', function() {
         
         b.__a.should.be.true;
         b._a.should.be.true;
-        
-        b.__d.should.be.false;
-        b._d.should.be.false;
-        
-        b.__c.should.be.true;
-        b._c.should.be.true;
-        
-    });
-    
-    it('nested include items and types', function() {
-        
-        var A = Type.inherit();
-        
-        A.prototype.__a = true;
-        
-        A.constructor = function(arg) {
-            this._a = arg;
-        };
-        
-        var C = Type.inherit();
-        
-        C.prototype.__c = true;
-        
-        C.constructor = function(arg) {
-            this._c = arg;
-        };
-        
-        var D = Type.inherit();
-        
-        D.prototype.__d = false;
-        
-        D.constructor = function(arg) {
-            this._d = arg;
-        };
-        
-        D.prototypes.include(C.new(true));
-        
-        var B = Type.inherit();
-        
-        B.prototype.__b = false;
-        
-        B.constructor = function(arg) {
-            this._b = arg;
-        };
-        
-        B.prototypes.include(A, D.new(false));
-        
-        var b = B.new(false);
-        
-        b.__b.should.be.false;
-        b._b.should.be.false;
-        
-        b.__a.should.be.true;
         
         b.__d.should.be.false;
         b._d.should.be.false;
@@ -188,7 +155,11 @@ describe('Blackstone Typing', function() {
             this._d = arg;
         };
         
-        D.prototypes.include(c);
+        D.inheritor = function() {
+            D.constructor.call(this, false);
+        };
+        
+        D.prototypes.include(C);
         
         var d = D.new(false);
         
@@ -200,7 +171,7 @@ describe('Blackstone Typing', function() {
             this._b = arg;
         };
         
-        B.prototypes.include(A, d);
+        B.prototypes.include(A, D);
         
         var b = B.new(false);
         
