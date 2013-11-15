@@ -1049,34 +1049,6 @@
                     };
                     
                     // (cursor Superposition/Position⎨, callback(superpositions... Superposition) Function⎬)
-                    this.after = function(cursor, callback) {
-                        var position = this;
-                        
-                        // Cursor // start
-                        
-                        if (cursor instanceof Item) {
-                            if (cursor.of(Typing.Superposition)) {
-                                var superposition = cursor;
-                            } else if (cursor.of(Typing.Position)) {
-                                var superposition = cursor.super();
-                            }
-                        } else throw new Error('cursor is not a item');
-                        
-                        if (!superposition.in(this.list()).__native.exists) throw new Error('cursor is not exists');
-                        
-                        // Cursor // end
-                        
-                        // Callback
-                        if(lodash.isFunction(callback)) var callback = undefined;
-                        
-                        if (this.__native.exists) {
-                            this.__native.remove();
-                        }
-                        
-                        superposition.in(this.list()).append(this.super());
-                    };
-                    
-                    // (cursor Superposition/Position⎨, callback(superpositions... Superposition) Function⎬)
                     this.before = function(cursor, callback) {
                         var position = this;
                         
@@ -1102,6 +1074,34 @@
                         }
                         
                         superposition.in(this.list()).prepend(this.super());
+                    };
+                    
+                    // (cursor Superposition/Position⎨, callback(superpositions... Superposition) Function⎬)
+                    this.after = function(cursor, callback) {
+                        var position = this;
+                        
+                        // Cursor // start
+                        
+                        if (cursor instanceof Item) {
+                            if (cursor.of(Typing.Superposition)) {
+                                var superposition = cursor;
+                            } else if (cursor.of(Typing.Position)) {
+                                var superposition = cursor.super();
+                            }
+                        } else throw new Error('cursor is not a item');
+                        
+                        if (!superposition.in(this.list()).__native.exists) throw new Error('cursor is not exists');
+                        
+                        // Cursor // end
+                        
+                        // Callback
+                        if(lodash.isFunction(callback)) var callback = undefined;
+                        
+                        if (this.__native.exists) {
+                            this.__native.remove();
+                        }
+                        
+                        superposition.in(this.list()).append(this.super());
                     };
                     
                     // => prev position Position

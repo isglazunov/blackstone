@@ -200,7 +200,6 @@ describe('Blackstone Lists', function() {
         };
         
         it('default', function(done) {
-            
             var counter = 0;
             l.each(function(sup) {
                 var eql = Eql(sup);
@@ -220,16 +219,6 @@ describe('Blackstone Lists', function() {
         });
         
         it('sync', function() {
-            
-            var l = new List;
-            
-            s0 = new Super;
-            s1 = new Super;
-            s2 = new Super;
-            s3 = new Super;
-            
-            l.append(s0, s1, s2, s3);
-            
             var counter = 0;
             l.each(function(sup) {
                 var eql = Eql(sup);
@@ -246,16 +235,6 @@ describe('Blackstone Lists', function() {
         });
         
         it('reverse', function() {
-            
-            var l = new List;
-            
-            s0 = new Super;
-            s1 = new Super;
-            s2 = new Super;
-            s3 = new Super;
-            
-            l.append(s0, s1, s2, s3);
-            
             var counter = 0;
             l.each(function(sup) {
                 var eql = Eql(sup);
