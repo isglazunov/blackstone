@@ -1048,14 +1048,70 @@
                         return nativeResult;
                     };
                     
+                    // (cursor Superposition/Position⎨, callback(superpositions... Superposition) Function⎬)
+                    this.after = function(cursor, callback) {
+                        var position = this;
+                        
+                        // Cursor // start
+                        
+                        if (cursor instanceof Item) {
+                            if (cursor.of(Typing.Superposition)) {
+                                var superposition = cursor;
+                            } else if (cursor.of(Typing.Position)) {
+                                var superposition = cursor.super();
+                            }
+                        } else throw new Error('cursor is not a item');
+                        
+                        if (!superposition.in(this.list()).__native.exists) throw new Error('cursor is not exists');
+                        
+                        // Cursor // end
+                        
+                        // Callback
+                        if(lodash.isFunction(callback)) var callback = undefined;
+                        
+                        if (this.__native.exists) {
+                            this.__native.remove();
+                        }
+                        
+                        superposition.in(this.list()).append(this.super());
+                    };
+                    
+                    // (cursor Superposition/Position⎨, callback(superpositions... Superposition) Function⎬)
+                    this.before = function(cursor, callback) {
+                        var position = this;
+                        
+                        // Cursor // start
+                        
+                        if (cursor instanceof Item) {
+                            if (cursor.of(Typing.Superposition)) {
+                                var superposition = cursor;
+                            } else if (cursor.of(Typing.Position)) {
+                                var superposition = cursor.super();
+                            }
+                        } else throw new Error('cursor is not a item');
+                        
+                        if (!superposition.in(this.list()).__native.exists) throw new Error('cursor is not exists');
+                        
+                        // Cursor // end
+                        
+                        // Callback
+                        if(lodash.isFunction(callback)) var callback = undefined;
+                        
+                        if (this.__native.exists) {
+                            this.__native.remove();
+                        }
+                        
+                        superposition.in(this.list()).prepend(this.super());
+                    };
+                    
                     // => prev position Position
                     this.prev = function() {
-                        return this.__native.prev.value;
+                        return this.__native.prev? this.__native.prev.value : this.__native.prev
                     };
                     
                     // => next position Position
                     this.next = function() {
-                        return this.__native.next.value;
+                        return this.__native.next? this.__native.next.value : this.__native.next
                     };
                     
                     // => position list List
@@ -1065,7 +1121,7 @@
                     
                     // => position super Superposition
                     this.super = function() {
-                        return this.__native.super.value;
+                        return this.__native.super? this.__native.super.value : this.__native.super
                     };
                 };
                 
