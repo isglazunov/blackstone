@@ -1416,14 +1416,24 @@
                         return list.length();
                     };
                     
-                    // (handler.call(~ { native lists.Superposition, super Superposition }, superposition, native lists.Superposition, position) Function⎨, options Object⎬) ~ adapter
+                    // (handler.call(~ { native lists.Superposition, super Superposition, position Position }, superposition Superposition, position Position) Function⎨, options Object⎬) ~ adapter
                     this.each = function(handler, options) {
+                        var list = this;
                         
-                        this.__native.each(function(native, position) {
-                            this.native = native;
-                            this.super = native.value;
+                        this.__native.each(function(nativeSuperposition, nativePosition) {
+                            var context = this;
                             
-                            handler.call(this, this.super, native, position);
+                            context.native = nativeSuperposition;
+                            
+                            var superposition = nativeSuperposition.value;
+                            context.super = superposition;
+                            
+                            var position = nativePosition.value;
+                            context.position = position;
+                            
+                            context.list = list;
+                            
+                            handler.call(context, superposition, position);
                         }, options);
                     
                     }
