@@ -156,7 +156,7 @@
                     return this.length;
                 };
                 
-                // (handler Function⎨, options { sync Boolean, reverse Boolean, callback Function }⎬)
+                // (handler.call({ position, super, list, ~ next }, super Superposition, position Position, list List) Function⎨, options { sync Boolean, reverse Boolean, callback() Function }⎬)
                 List.prototype.each = function(handler, _options) {
                     
                     var list = this;
@@ -168,6 +168,8 @@
                         reverse: false,
                         callback: undefined
                     });
+                    
+                    var callback = options.callback? options.callback : function() {};
                     
                     var position = undefined;
                     var future = undefined;
@@ -195,7 +197,7 @@
                         if (future) {
                             move();
                             iteration();
-                        } else if (options.callback) options.callback();
+                        } else callback();
                     };
                     
                     if (!options.sync) {
@@ -217,12 +219,12 @@
                             }, position.super, position, list);
                             
                             if (future) next();
-                            else if (options.callback) options.callback();
+                            else callback();
                         };
                     }
                     
                     if (list.length > 0) iteration();
-                    else if (options.callback) options.callback();
+                    else callback();
                     
                 };
                 
@@ -705,13 +707,13 @@
                     
                     this.prototype = {};
                     
-                    // .apply(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                    // .call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                     this.constructor = undefined;
                     
-                    // .apply(item Item, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                    // .call(item Item, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                     this.inheritor = undefined;
                     
-                    // .apply(prototype Object, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                    // .call(prototype Object, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                     this.creator = undefined;
                     
                     this.prototypes = new Prototypes
@@ -751,10 +753,10 @@
                     
                 };
                 
-                // (attr Array⎨, callback.apply(item, attr) Function⎬)
-                // => item Item
-                // .constructor.apply(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                // (attr Array⎨, callback.call(item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } }) Function⎬)
+                // .constructor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // 'new' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                // => item Item
                 Type.prototype.new = function(attr, callback) {
                     
                     var type = this;
@@ -840,6 +842,9 @@
                     async.nextTick(function() {
                         type.trigger('new', [attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes], callback);
                     });
+                    
+                    // callback
+                    if (callback) callback.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes);
                     
                     return item;
                 };
@@ -941,15 +946,15 @@
                                 position.list().trigger('remove', [position], next);
                             },
                         ], function() {
-                            if (callback) callback(position);
+                            callback();
                         });
                     };
                     
-                    // ([callback(position Position) Function])
+                    // ([callback.call(position Position, position Position) Function])
                     // position 'remove' (position Position)
                     // position.super 'remove' (position Position)
                     // position.list 'remove' (position Position)
-                    // callback (position Position)
+                    // callback.call(position Position, position Position)
                     // => position.length()
                     this.remove = function(callback) {
                         
@@ -957,7 +962,9 @@
                         
                         var nativeResult = this.__native.remove();
                         
-                        __removeEvents(position, callback);
+                        __removeEvents(position, function() {
+                            if (callback) callback.call(position, position);
+                        });
                         
                         return nativeResult;
                     };
@@ -981,17 +988,17 @@
                                 position.list().trigger('add', typing, next);
                             },
                         ], function() {
-                            if (callback) callback.apply(position, typing);
+                            callback();
                         });
                     };
                     
-                    // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
+                    // (superpositions... Superposition⎨, callback.call(position Position, superpositions... Superposition) Function⎬)
                     // position 'append' (superpositions... Superposition)
                     // position.super 'append' (position Position, superpositions[Superposition] Array)
                     // position.super 'add' (position Position, superpositions[Superposition] Array)
                     // ~ position.list 'append' (superpositions... Superposition)
                     // position.list 'add' (superpositions... Superposition)
-                    // callbac.apply(position, superpositions... Superposition)
+                    // callback.call(position Position, superpositions... Superposition)
                     // => position.length()
                     this.append = function() {
                         var position = this;
@@ -1004,7 +1011,9 @@
                         
                         var nativeResult = this.__native.append.apply(this.__native, _parse.native);
                         
-                        __appendEvents(isLast, position, _parse.typing, callback);
+                        __appendEvents(isLast, position, _parse.typing, function() {
+                            if (callback) callback.apply(position, _parse.typing);
+                        });
                         
                         return nativeResult;
                     };
@@ -1028,17 +1037,17 @@
                                 position.list().trigger('add', typing, next);
                             },
                         ], function() {
-                            if (callback) callback.apply(position, typing);
+                            callback();
                         });
                     };
                     
-                    // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
+                    // (superpositions... Superposition⎨, callback.call(position Position, superpositions... Superposition) Function⎬)
                     // position 'prepend' (superpositions... Superposition)
                     // position.super 'prepend' (position Position, superpositions[Superposition] Array)
                     // position.super 'add' (position Position, superpositions[Superposition] Array)
                     // ~ position.list 'prepend' (superpositions... Superposition)
                     // position.list 'add' (superpositions... Superposition)
-                    // callbac.apply(position, superpositions... Superposition)
+                    // callback.call(position Position, superpositions... Superposition)
                     // => position.length()
                     this.prepend = function() {
                         var position = this;
@@ -1051,12 +1060,14 @@
                         
                         var nativeResult = this.__native.prepend.apply(this.__native, _parse.native);
                         
-                        __prependEvents(isFirst, position, _parse.typing, callback);
+                        __prependEvents(isFirst, position, _parse.typing, function() {
+                            if (callback) callback.apply(position, _parse.typing);
+                        });
                         
                         return nativeResult;
                     };
                     
-                    // (cursor Superposition/Position⎨, callback(superpositions... Superposition) Function⎬)
+                    // (cursor Superposition/Position⎨, callback.call(position Position, cursor Superposition) Function⎬)
                     // ~ position 'remove' (position Position)
                     // ~ position.super 'remove' (position Position)
                     // ~ position.list 'remove' (position Position)
@@ -1067,7 +1078,7 @@
                     // cursor.list 'add' (superpositions... Superposition)
                     // position 'before' (cursor Superposition)
                     // position 'move' (cursor Superposition)
-                    // callbac.apply(position, cursor Superposition)
+                    // callback.call(position Position, cursor Superposition)
                     this.before = function(_cursor, callback) {
                         var position = this;
                         
@@ -1113,17 +1124,23 @@
                                     position.trigger('before', [cursor], next);
                                 },
                                 function(next) {
+                                    position.super().trigger('before', [position, cursor], next);
+                                },
+                                function(next) {
                                     position.trigger('move', [cursor], next);
+                                },
+                                function(next) {
+                                    position.super().trigger('move', [position, cursor], next);
                                 }
                             ], function() {
-                                if (callback) callback.apply(position, cursor);
+                                if (callback) callback.call(position, cursor);
                             });
                         });
                         
                         return nativeResult;
                     };
                     
-                    // (cursor Superposition/Position⎨, callback(superpositions... Superposition) Function⎬)
+                    // (cursor Superposition/Position⎨, callback.call(position Position, cursor Superposition) Function⎬)
                     // ~ position 'remove' (position Position)
                     // ~ position.super 'remove' (position Position)
                     // ~ position.list 'remove' (position Position)
@@ -1133,8 +1150,10 @@
                     // ~ cursor.list 'append' (superpositions... Superposition)
                     // cursor.list 'add' (superpositions... Superposition)
                     // position 'before' (cursor Superposition)
+                    // position.super 'before' (position Position, cursor Superposition)
                     // position 'move' (cursor Superposition)
-                    // callbac.apply(position, cursor Superposition)
+                    // position.super 'move' (position Position, cursor Superposition)
+                    // callback.call(position Position, cursor Superposition)
                     this.after = function(_cursor, callback) {
                         var position = this;
                         
@@ -1180,10 +1199,16 @@
                                     position.trigger('after', [cursor], next);
                                 },
                                 function(next) {
+                                    position.super().trigger('after', [position, cursor], next);
+                                },
+                                function(next) {
                                     position.trigger('move', [cursor], next);
+                                },
+                                function(next) {
+                                    position.super().trigger('move', [position, cursor], next);
                                 }
                             ], function() {
-                                if (callback) callback.apply(position, cursor);
+                                if (callback) callback.call(position, cursor);
                             });
                         });
                         
@@ -1391,7 +1416,7 @@
                         return list.length();
                     };
                     
-                    // (handler.apply(~ { native lists.Superposition, super Superposition }, superposition, native lists.Superposition, position) Function⎨, options Object⎬) ~ adapter
+                    // (handler.call(~ { native lists.Superposition, super Superposition }, superposition, native lists.Superposition, position) Function⎨, options Object⎬) ~ adapter
                     this.each = function(handler, options) {
                         
                         this.__native.each(function(native, position) {
