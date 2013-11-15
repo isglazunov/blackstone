@@ -900,7 +900,7 @@
                     };
                     
                     for (var a in arguments) {
-                        if (arguments[a] instanceof blackstone.typing.Item && arguments[a].of(Typing.Superposition)) {
+                        if (arguments[a] instanceof Item && arguments[a].of(Typing.Superposition)) {
                             arguments[a].in(list);
                             result.native.push(arguments[a].__native);
                             result.typing.push(arguments[a]);
