@@ -96,7 +96,9 @@
                 // (superpositions... Superposition)
                 List.prototype.remove = function() {
                     for (var s in arguments) {
-                        arguments[s].in(this).remove();
+                        if (arguments[s] instanceof lists.Superposition) {
+                            arguments[s].in(this).remove();
+                        }
                     }
                     
                     return this.length;
@@ -107,17 +109,21 @@
                     
                     if (arguments.length > 0) {
                         for (var s = 0; s < arguments.length; s++) {
-                            var pos = arguments[s].in(this);
-                            
-                            if (this.last) {
-                                this.last.__addAfter(pos);
-                                this.__setLast(pos);
-                            } else {
-                                this.__setSingle(pos);
+                            if (arguments[s] instanceof lists.Superposition) {
+                                var pos = arguments[s].in(this);
+                                
+                                if (pos.exists) continue;
+                                
+                                if (this.last) {
+                                    this.last.__addAfter(pos);
+                                    this.__setLast(pos);
+                                } else {
+                                    this.__setSingle(pos);
+                                }
+                                
+                                this.length++;
+                                pos.exists = true;
                             }
-                            
-                            this.length++;
-                            pos.exists = true;
                         }
                     }
                     
@@ -129,17 +135,21 @@
                     
                     if (arguments.length > 0) {
                         for (var s = arguments.length - 1; s > 0-1; s--) {
-                            var pos = arguments[s].in(this);
-                            
-                            if (this.first) {
-                                this.first.__addBefore(pos);
-                                this.__setFirst(pos);
-                            } else {
-                                this.__setSingle(pos);
+                            if (arguments[s] instanceof lists.Superposition) {
+                                var pos = arguments[s].in(this);
+                                
+                                if (pos.exists) continue;
+                                
+                                if (this.first) {
+                                    this.first.__addBefore(pos);
+                                    this.__setFirst(pos);
+                                } else {
+                                    this.__setSingle(pos);
+                                }
+                                
+                                this.length++;
+                                pos.exists = true;
                             }
-                            
-                            this.length++;
-                            pos.exists = true;
                         }
                     }
                     
@@ -917,7 +927,7 @@
                     }
                 };
                 
-                Position.creator = function(prototype) {
+                Position.creator = function() {
                     
                     // ([callback(position Position) Function])
                     // position 'remove' (position Position)
@@ -925,7 +935,7 @@
                     // position.list 'remove' (position Position)
                     // callback (position Position)
                     // => position.length()
-                    prototype.remove = function(callback) {
+                    this.remove = function(callback) {
                         
                         var position = this;
                         
@@ -957,7 +967,7 @@
                     // position.list 'add' (superpositions... Superposition)
                     // callbac.apply(position, superpositions... Superposition)
                     // => position.length()
-                    prototype.append = function() {
+                    this.append = function() {
                         var position = this;
                         
                         var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
@@ -1002,7 +1012,7 @@
                     // position.list 'add' (superpositions... Superposition)
                     // callbac.apply(position, superpositions... Superposition)
                     // => position.length()
-                    prototype.prepend = function() {
+                    this.prepend = function() {
                         var position = this;
                         
                         var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
@@ -1039,22 +1049,22 @@
                     };
                     
                     // => prev position Position
-                    prototype.prev = function() {
+                    this.prev = function() {
                         return this.__native.prev.value;
                     };
                     
                     // => next position Position
-                    prototype.next = function() {
+                    this.next = function() {
                         return this.__native.next.value;
                     };
                     
                     // => position list List
-                    prototype.list = function() {
+                    this.list = function() {
                         return this.__native.list.value;
                     };
                     
                     // => position super Superposition
-                    prototype.super = function() {
+                    this.super = function() {
                         return this.__native.super.value;
                     };
                 };
@@ -1077,11 +1087,11 @@
                     }
                 };
                 
-                Superposition.creator = function(prototype) {
+                Superposition.creator = function() {
                     
                     // (list List)
                     // => position Position
-                    prototype.in = function(list) {
+                    this.in = function(list) {
                         var nativeList = list instanceof lists.List? list : list instanceof Item && list.of(Typing.List)? list.__native : undefined
                         
                         if (!nativeList) return undefined;
@@ -1114,7 +1124,7 @@
                     }
                 };
                 
-                List.creator = function(prototype) {
+                List.creator = function() {
                     
                     // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
                     // position 'remove' (position Position)
@@ -1122,7 +1132,7 @@
                     // list 'remove' (position Position)
                     // ~ callback.apply(list, superpositions... Superposition)
                     // => list.length();
-                    prototype.remove = function() {
+                    this.remove = function() {
                         var list = this;
                         
                         var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
@@ -1148,7 +1158,7 @@
                     // list 'add' (superpositions... Superposition)
                     // callbac.apply(list, superpositions... Superposition)
                     // => position.length()
-                    prototype.append = function() {
+                    this.append = function() {
                         var list = this;
                         
                         var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
@@ -1195,7 +1205,7 @@
                     // list 'add' (superpositions... Superposition)
                     // callbac.apply(list, superpositions... Superposition)
                     // => position.length()
-                    prototype.prepend = function() {
+                    this.prepend = function() {
                         var list = this;
                         
                         var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
@@ -1235,7 +1245,7 @@
                     };
                     
                     // (handler.apply(~ { native lists.Superposition, super Superposition }, superposition, native lists.Superposition, position) Function⎨, options Object⎬) ~ adapter
-                    prototype.each = function(handler, options) {
+                    this.each = function(handler, options) {
                         
                         this.__native.each(function(native, position) {
                             this.native = native;
@@ -1246,15 +1256,15 @@
                     
                     }
                     
-                    prototype.first = function() {
+                    this.first = function() {
                         return this.__native.first? this.__native.first.value : undefined
                     };
                     
-                    prototype.last = function() {
+                    this.last = function() {
                         return this.__native.last? this.__native.last.value : undefined
                     };
                     
-                    prototype.length = function() {
+                    this.length = function() {
                         return this.__native.length;
                     };
                     
@@ -1277,7 +1287,7 @@
                     if (!this.defaults) this.defaults = {};
                 };
                 
-                Data.creator = function(prototype) {
+                Data.creator = function() {
                     
                     // (⎨ options: { defaults: true, clone: true } ⎬)
                     var __get = function(data, __data, options) {
@@ -1307,7 +1317,7 @@
                     // (⎨ options ~ adapter⎨, callback Function ⎬⎬)
                     // data 'get' (data)
                     // callback (data)
-                    prototype.get = function(options, callback) {
+                    this.get = function(options, callback) {
                         var self = this;
                         
                         return __get(self, self.__data, options);
@@ -1320,7 +1330,7 @@
                     // (source Object⎨, callback(data, before) Function⎬)
                     // data 'set' (data, before)
                     // callback (data, before)
-                    prototype.set = function(source, callback) {
+                    this.set = function(source, callback) {
                         var self = this;
                         
                         var before = __get(self, self.__data, { defaults: false, clone: true });
@@ -1336,7 +1346,7 @@
                     // data 'unset' (data, before)
                     // data 'set' (data, before)
                     // callback (data, before)
-                    prototype.unset = function(callback) {
+                    this.unset = function(callback) {
                         var self = this;
                         
                         var before = __get(self, self.__data, { defaults: false, clone: true });
@@ -1354,7 +1364,7 @@
                     // data 'extend' (data, before)
                     // data 'set' (data, before)
                     // callback (data, before)
-                    prototype.extend = function(source, callback) {
+                    this.extend = function(source, callback) {
                         var self = this;
                         
                         var before = __get(self, self.__data, { defaults: false, clone: true });
@@ -1372,7 +1382,7 @@
                     // data 'merge' (data, before)
                     // data 'set' (data, before)
                     // callback (data, before)
-                    prototype.merge = function(source, callback) {
+                    this.merge = function(source, callback) {
                         var self = this;
                         
                         var before = __get(self, self.__data, { defaults: false, clone: true });
@@ -1391,7 +1401,7 @@
                     // data 'get' (data)
                     // callback (result Boolean, data)
                     // => Boolean
-                    prototype.has = function(property, options, callback) {
+                    this.has = function(property, options, callback) {
                         var self = this;
                         
                         var data = __get(self, self.__data, options);
@@ -1411,7 +1421,7 @@
                     // data 'get' (data)
                     // callback (keys[String] Array, data)
                     // => [String] Array
-                    prototype.keys = function(options, callback) {
+                    this.keys = function(options, callback) {
                         var self = this;
                         
                         var data = __get(self, self.__data, options);
@@ -1431,7 +1441,7 @@
                     // data 'get' (data)
                     // callback (keys Array, data)
                     // => [String] Array
-                    prototype.values = function(options, callback) {
+                    this.values = function(options, callback) {
                         var self = this;
                         
                         var data = __get(self, self.__data, options);
@@ -1456,7 +1466,7 @@
                 
                 var Documents = Type.inherit();
                 
-                Documents.prototypes.include(Typing.List);
+                Documents.prototypes.include(Typing.List); 
                 
                 return Documents;
                 
@@ -1471,7 +1481,7 @@
                 return Document;
                 
             })(typing.Type, Typing.Data);
-                
+            
             return Typing;
             
         })(blackstone.typing, blackstone.lists);
