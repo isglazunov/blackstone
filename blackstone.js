@@ -877,8 +877,10 @@
                 Position.constructor = function(native) {
                     
                     // Mutual binding
-                    this.__native = native;
-                    this.__native.value = this;
+                    if (!this.__native) {
+                        this.__native = native;
+                        this.__native.value = this;
+                    }
                 };
                 
                 Position.creator = function(prototype) {
@@ -1035,8 +1037,10 @@
                 Superposition.constructor = function() {
                     
                     // Mutual binding
-                    this.__native = new lists.Superposition;
-                    this.__native.value = this;
+                    if (!this.__native) {
+                        this.__native = new lists.Superposition;
+                        this.__native.value = this;
+                    }
                 };
                 
                 Superposition.creator = function(prototype) {
@@ -1070,7 +1074,7 @@
                 List.constructor = List.inheritor = function() {
                     
                     // Mutual binding
-                    if (this.__native) {
+                    if (!this.__native) {
                         this.__native = new lists.List;
                         this.__native.value = this;
                     }
