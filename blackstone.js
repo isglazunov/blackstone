@@ -1094,50 +1094,60 @@
                         
                         if (!cursor.in(this.list()).exists()) throw new Error('cursor is not exists');
                         
+                        var cursorPosition = cursor.in(position.list());
+                        
                         // Cursor // end
                         
                         var exists = position.exists();
+                        var isSelf = false;
                         
-                        // Remove
-                        if (exists) {
-                            position.__native.remove();
+                        if (position.__native.id == cursorPosition.__native.id) {
+                            isSelf = true;
                         }
                         
-                        // Prepend this to cursor
-                        var cursorPosition = cursor.in(position.list());
+                        if (!isSelf) {
+                            
+                            // Remove
+                            if (exists) {
+                                position.__native.remove();
+                            }
+                            
+                            // Prepend this to cursor
+                            
+                            var isFirst = position.list().first().__native.id == cursorPosition.__native.id;
+                            
+                            cursorPosition.__native.prepend(position.super().__native);
                         
-                        var isFirst = position.list().first().__native.id == cursorPosition.__native.id;
-                        
-                        var nativeResult = cursorPosition.__native.prepend(position.super().__native);
-                        
-                        // Events
-                        async.nextTick(function() {
-                            async.series([
-                                function(next) {
-                                    if (exists) __removeEvents(position, next);
-                                    else next();
-                                },
-                                function(next) {
-                                    __prependEvents(isFirst, cursorPosition, [position.super()], next);
-                                },
-                                function(next) {
-                                    position.trigger('before', [cursor], next);
-                                },
-                                function(next) {
-                                    position.super().trigger('before', [position, cursor], next);
-                                },
-                                function(next) {
-                                    position.trigger('move', [cursor], next);
-                                },
-                                function(next) {
-                                    position.super().trigger('move', [position, cursor], next);
-                                }
-                            ], function() {
-                                if (callback) callback.call(position, cursor);
+                            // Events
+                            async.nextTick(function() {
+                                async.series([
+                                    function(next) {
+                                        if (exists) __removeEvents(position, next);
+                                        else next();
+                                    },
+                                    function(next) {
+                                        __prependEvents(isFirst, cursorPosition, [position.super()], next);
+                                    },
+                                    function(next) {
+                                        position.trigger('before', [cursor], next);
+                                    },
+                                    function(next) {
+                                        position.super().trigger('before', [position, cursor], next);
+                                    },
+                                    function(next) {
+                                        position.trigger('move', [cursor], next);
+                                    },
+                                    function(next) {
+                                        position.super().trigger('move', [position, cursor], next);
+                                    }
+                                ], function() {
+                                    if (callback) callback.call(position, cursor);
+                                });
                             });
-                        });
-                        
-                        return nativeResult;
+                            
+                        } else {
+                            if (callback) callback.call(position, cursor);
+                        }
                     };
                     
                     // (cursor Superposition/Position⎨, callback.call(position Position, cursor Superposition) Function⎬)
@@ -1169,50 +1179,79 @@
                         
                         if (!cursor.in(this.list()).exists()) throw new Error('cursor is not exists');
                         
+                        var cursorPosition = cursor.in(position.list());
+                        
                         // Cursor // end
                         
                         var exists = position.exists();
+                        var isSelf = false;
                         
-                        // Remove
-                        if (exists) {
-                            position.__native.remove();
+                        if (position.__native.id == cursorPosition.__native.id) {
+                            isSelf = true;
                         }
                         
-                        // Prepend this to cursor
-                        var cursorPosition = cursor.in(position.list());
+                        if (!isSelf) {
+                            
+                            // Remove
+                            if (exists) {
+                                position.__native.remove();
+                            }
+                            
+                            // Prepend this to cursor
+                            
+                            var isLast = position.list().last().__native.id == cursorPosition.__native.id;
+                            
+                            cursorPosition.__native.append(position.super().__native);
                         
-                        var isLast = position.list().last().__native.id == cursorPosition.__native.id;
-                        
-                        var nativeResult = cursorPosition.__native.append(position.super().__native);
-                        
-                        // Events
-                        async.nextTick(function() {
-                            async.series([
-                                function(next) {
-                                    if (exists) __removeEvents(position, next);
-                                    else next();
-                                },
-                                function(next) {
-                                    __appendEvents(isLast, cursorPosition, [position.super()], next);
-                                },
-                                function(next) {
-                                    position.trigger('after', [cursor], next);
-                                },
-                                function(next) {
-                                    position.super().trigger('after', [position, cursor], next);
-                                },
-                                function(next) {
-                                    position.trigger('move', [cursor], next);
-                                },
-                                function(next) {
-                                    position.super().trigger('move', [position, cursor], next);
-                                }
-                            ], function() {
-                                if (callback) callback.call(position, cursor);
+                            // Events
+                            async.nextTick(function() {
+                                async.series([
+                                    function(next) {
+                                        if (exists) __removeEvents(position, next);
+                                        else next();
+                                    },
+                                    function(next) {
+                                        __appendEvents(isLast, cursorPosition, [position.super()], next);
+                                    },
+                                    function(next) {
+                                        position.trigger('after', [cursor], next);
+                                    },
+                                    function(next) {
+                                        position.super().trigger('after', [position, cursor], next);
+                                    },
+                                    function(next) {
+                                        position.trigger('move', [cursor], next);
+                                    },
+                                    function(next) {
+                                        position.super().trigger('move', [position, cursor], next);
+                                    }
+                                ], function() {
+                                    if (callback) callback.call(position, cursor);
+                                });
                             });
-                        });
+                            
+                        } else {
+                            if (callback) callback.call(position, cursor);
+                        }
+                    };
+                    
+                    // (handler( ~ { next(direction Superposition/Position) Function }, position Position) Function)
+                    this.travel = function(handler) {
+                        var position = this;
                         
-                        return nativeResult;
+                        handler.call({ next: function(_direction) {
+                            
+                            if (_direction instanceof Item) {
+                                if (_direction.of(Typing.Superposition)) {
+                                    var direction = _direction.in(position.list());
+                                } else if (_direction.of(Typing.Position)) {
+                                    var direction = _direction.super().in(position.list());
+                                }
+                            } else throw new Error('direction is not a item');
+                            
+                            direction.travel(handler);
+                            
+                        } }, position);
                     };
                     
                     // => prev position Position
@@ -1282,7 +1321,7 @@
                 
             })(typing.Type, typing.Item, lists);
             
-            Typing.List = (function(Type) {
+            Typing.List = (function(Type, Item) {
                 
                 var List = Type.inherit();
                 
@@ -1435,8 +1474,8 @@
                             
                             handler.call(context, superposition, position);
                         }, options);
-                    
-                    }
+                        
+                    };
                     
                     this.first = function() {
                         return this.__native.first? this.__native.first.value : undefined
@@ -1454,7 +1493,7 @@
                 
                 return List;
                 
-            })(typing.Type);
+            })(typing.Type, typing.Item);
             
             Typing.Data = (function(Type) {
                 

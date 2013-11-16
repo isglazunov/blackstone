@@ -316,4 +316,73 @@ describe('Blackstone Lists', function() {
         eql(l.last().prev().prev().super(), s2);
         eql(l.last().prev().prev().prev().super(), s0);
     });
+    
+    it('position.before', function() {
+        var l = List.new();
+        
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
+        
+        l.append(s0, s1, s2);
+        
+        s0.in(l).before(s0);
+        
+        eql(l.first().super(), s0);
+        eql(l.first().next().super(), s1);
+        eql(l.first().next().next().super(), s2);
+        eql(l.last().super(), s2);
+        eql(l.last().prev().super(), s1);
+        eql(l.last().prev().prev().super(), s0);
+    });
+    
+    it('position.after', function() {
+        var l = List.new();
+        
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
+        
+        l.append(s0, s1, s2);
+        
+        s0.in(l).after(s0);
+        
+        eql(l.first().super(), s0);
+        eql(l.first().next().super(), s1);
+        eql(l.first().next().next().super(), s2);
+        eql(l.last().super(), s2);
+        eql(l.last().prev().super(), s1);
+        eql(l.last().prev().prev().super(), s0);
+    });
+    
+    it('position.travel', function() {
+        var l = List.new();
+        
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
+        
+        l.append(s0, s1, s2);
+        
+        var counter = 0 - 1;
+        
+        s1.in(l).travel(function(pos) {
+            counter++;
+            if (counter == 0) {
+                eql(pos.super(), s1);
+                this.next(pos.prev());
+            } else if (counter == 1) {
+                eql(pos.super(), s0);
+                this.next(pos.next());
+            } else if (counter == 2) {
+                eql(pos.super(), s1);
+                this.next(pos.next());
+            } else if (counter == 3) {
+                eql(pos.super(), s2);
+                this.next(pos.prev());
+            } else {
+                eql(pos.super(), s1);
+            }
+        });
+    });
 });
