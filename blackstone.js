@@ -356,6 +356,19 @@
                     
                     return this.list.length;
                 };
+                    
+                // (handler( ~ { next(direction Superposition/Position) Function }, position Position) Function)
+                Position.prototype.travel = function(handler) {
+                    var position = this;
+                    
+                    handler.call({ next: function(direction) {
+                        
+                        if (!direction instanceof Position) throw new Error('direction is not a position');
+                        
+                        direction.travel(handler);
+                        
+                    } }, position);
+                };
                 
                 // Safe // end
                 
@@ -1239,19 +1252,25 @@
                     this.travel = function(handler) {
                         var position = this;
                         
-                        handler.call({ next: function(_direction) {
+                        position.__native.travel(function(pos) {
                             
-                            if (_direction instanceof Item) {
-                                if (_direction.of(Typing.Superposition)) {
-                                    var direction = _direction.in(position.list());
-                                } else if (_direction.of(Typing.Position)) {
-                                    var direction = _direction.super().in(position.list());
-                                }
-                            } else throw new Error('direction is not a item');
+                            var travel = this;
                             
-                            direction.travel(handler);
+                            handler.call({ next: function(_direction) {
+                                
+                                if (_direction instanceof Item) {
+                                    if (_direction.of(Typing.Superposition)) {
+                                        var direction = _direction.in(position.list());
+                                    } else if (_direction.of(Typing.Position)) {
+                                        var direction = _direction.super().in(position.list());
+                                    }
+                                } else throw new Error('direction is not a item');
+                                
+                                travel.next(direction.__native);
+                                
+                            } }, pos.value);
                             
-                        } }, position);
+                        });
                     };
                     
                     // => prev position Position

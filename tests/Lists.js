@@ -253,4 +253,35 @@ describe('Blackstone Lists', function() {
         });
         
     });
+    
+    it('position.travel', function() {
+        var l = new List;
+        
+        var s0 = new Super;
+        var s1 = new Super;
+        var s2 = new Super;
+        
+        l.append(s0, s1, s2);
+        
+        var counter = 0 - 1;
+        
+        s1.in(l).travel(function(pos) {
+            counter++;
+            if (counter == 0) {
+                eql(pos.super, s1);
+                this.next(pos.prev);
+            } else if (counter == 1) {
+                eql(pos.super, s0);
+                this.next(pos.next);
+            } else if (counter == 2) {
+                eql(pos.super, s1);
+                this.next(pos.next);
+            } else if (counter == 3) {
+                eql(pos.super, s2);
+                this.next(pos.prev);
+            } else {
+                eql(pos.super, s1);
+            }
+        });
+    });
 });
