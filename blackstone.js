@@ -228,6 +228,33 @@
                     
                 };
                 
+                // (callback Function)
+                List.prototype.sort = function(callback) {
+                    var list = this;
+                    
+                    var result = function() { callback(); };
+                    
+                    if (list.first) {
+                        
+                        if (list.first.next) {
+                            
+                            list.first.next.travel(function(pos) {
+                                var travel = this;
+                                
+                                var next = pos.next;
+                                
+                                pos.__sort(function() {
+                                    if (next) travel.next(next);
+                                    else result();
+                                });
+                                
+                            });
+                            
+                        } else result();
+                        
+                    } else result();
+                };
+                
                 // Safe // end
                 
                 return List;
@@ -295,6 +322,68 @@
                     }
                     
                     this.next = this.prev = undefined;
+                };
+                
+                // Find position for position in prevs
+                // (callback Function)
+                Position.prototype.__compare = function(callback) {
+                    var target = this;
+                    
+                    var parent = target.prev;
+                    var edge = false;
+                    var moved = false;
+                    
+                    var result = function() {
+                        callback(parent, edge, moved);
+                    };
+                    
+                    if (target.list.first.id == target.id) {
+                        edge = true;
+                        result();
+                    } else {
+                        target.prev.travel(function(source) {
+                            var travel = this;
+                            
+                            target.list.comparator.call({ next: function(response) {
+                                parent = source;
+                                
+                                if (response) {
+                                    result();
+                                    
+                                } else {
+                                    moved = true;
+                                    
+                                    if (source.prev) travel.next(source.prev);
+                                    else {
+                                        edge = true;
+                                        result();
+                                    }
+                                }
+                            } }, source.super, target.super);
+                        });
+                    }
+                };
+                
+                // Sort position in prevs
+                // (callback Function)
+                Position.prototype.__sort = function(callback) {
+                    var target = this;
+                    var list = target.list;
+                    
+                    var result = function() { callback(target) };
+                    
+                    target.__compare(function(parent, edge, moved) {
+                        if (!moved) result();
+                        else {
+                            target.remove();
+                            if (edge) {
+                                list.prepend(target.super);
+                            } else {
+                                parent.append(target.super);
+                            }
+                            result();
+                        }
+                    });
                 };
                 
                 // Unsafe // end
