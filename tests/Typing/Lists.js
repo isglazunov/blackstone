@@ -385,4 +385,36 @@ describe('Blackstone Lists', function() {
             }
         });
     });
+    
+    it('list.sort', function(done) {
+        var l = List.new();
+        
+        var s0 = Super.new();
+        var s1 = Super.new();
+        var s2 = Super.new();
+        var s3 = Super.new();
+        
+        l.append(s3, s0, s2, s1);
+        
+        l.comparator = function(prev, next) {
+            this.next(prev.__native.id < next.__native.id);
+        };
+        
+        l.bind('sort', function() {
+            eql(l.first().super(), s0);
+            eql(l.first().next().super(), s1);
+            eql(l.first().next().next().super(), s2);
+            eql(l.first().next().next().next().super(), s3);
+            eql(l.last().super(), s3);
+            eql(l.last().prev().super(), s2);
+            eql(l.last().prev().prev().super(), s1);
+            eql(l.last().prev().prev().prev().super(), s0);
+            
+            this.next();
+        });
+        
+        l.sort(function() {
+            done();
+        });
+    });
 });

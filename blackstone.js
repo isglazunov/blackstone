@@ -228,10 +228,11 @@
                     
                 };
                 
-                // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function)
-                List.prototype.sort = function(comparator, callback) {
+                // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function⎨, handler Function⎬)
+                List.prototype.sort = function(comparator, callback, handler) {
                     var list = this;
                     
+                    var handle = handler? function() { handler.apply(handler, arguments); } : function() {}
                     var result = function() { callback(); };
                     
                     if (list.first) {
@@ -243,7 +244,9 @@
                                 
                                 var next = pos.next;
                                 
-                                pos.__sort(comparator, function() {
+                                pos.__sort(comparator, function(moved) {
+                                    handle(pos, moved);
+                                    
                                     if (next) travel.next(next);
                                     else result();
                                 });
@@ -373,16 +376,15 @@
                     var result = function() { callback(target) };
                     
                     target.__compare(comparator, function(parent, edge, moved) {
-                        if (!moved) result();
-                        else {
+                        if (moved) {
                             target.remove();
                             if (edge) {
                                 list.prepend(target.super);
                             } else {
                                 parent.append(target.super);
                             }
-                            result();
                         }
+                        result(moved);
                     });
                 };
                 
@@ -1360,6 +1362,8 @@
                         this.__native = new lists.List;
                         this.__native.value = this;
                     }
+                    
+                    if (!this.comparator) this.comparator = undefined;
                 };
                     
                 // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
@@ -1478,6 +1482,26 @@
                         handler.call(context, superposition, position);
                     }, options);
                     
+                };
+                
+                // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function)
+                // position 'sort' ()
+                // list 'sort' ()
+                List.prototype.sort = function(callback) {
+                    var list = this;
+                    
+                    if (!list.comparator) throw new Error('Wrong comparator');
+                    
+                    list.__native.sort(function(source, target) {
+                        list.comparator.call(this, source.value, target.value);
+                        
+                    }, function() {
+                        
+                        list.trigger('sort', [], function() {
+                            if (callback) callback();
+                        });
+                        
+                    });
                 };
                 
                 List.prototype.first = function() {
