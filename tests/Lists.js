@@ -295,11 +295,9 @@ describe('Blackstone Lists', function() {
         
         l.append(s3, s0, s2, s1);
         
-        l.comparator = function(prev, next) {
+        l.sort(function(prev, next) {
             this.next(prev.id < next.id);
-        };
-        
-        l.sort(function() {
+        }, function() {
             eql(l.first.super, s0);
             eql(l.first.next.super, s1);
             eql(l.first.next.next.super, s2);

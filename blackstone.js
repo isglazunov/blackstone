@@ -228,8 +228,8 @@
                     
                 };
                 
-                // (callback Function)
-                List.prototype.sort = function(callback) {
+                // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function)
+                List.prototype.sort = function(comparator, callback) {
                     var list = this;
                     
                     var result = function() { callback(); };
@@ -243,7 +243,7 @@
                                 
                                 var next = pos.next;
                                 
-                                pos.__sort(function() {
+                                pos.__sort(comparator, function() {
                                     if (next) travel.next(next);
                                     else result();
                                 });
@@ -325,8 +325,8 @@
                 };
                 
                 // Find position for position in prevs
-                // (callback Function)
-                Position.prototype.__compare = function(callback) {
+                // (comparator Function, callback Function)
+                Position.prototype.__compare = function(comparator, callback) {
                     var target = this;
                     
                     var parent = target.prev;
@@ -344,7 +344,7 @@
                         target.prev.travel(function(source) {
                             var travel = this;
                             
-                            target.list.comparator.call({ next: function(response) {
+                            comparator.call({ next: function(response) {
                                 parent = source;
                                 
                                 if (response) {
@@ -365,14 +365,14 @@
                 };
                 
                 // Sort position in prevs
-                // (callback Function)
-                Position.prototype.__sort = function(callback) {
+                // (comparator Function, callback Function)
+                Position.prototype.__sort = function(comparator, callback) {
                     var target = this;
                     var list = target.list;
                     
                     var result = function() { callback(target) };
                     
-                    target.__compare(function(parent, edge, moved) {
+                    target.__compare(comparator, function(parent, edge, moved) {
                         if (!moved) result();
                         else {
                             target.remove();
