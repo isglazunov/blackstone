@@ -958,6 +958,8 @@
                 Type.prototype.inherit = function() {
                     var type = Type.inherit();
                     
+                    type.prototypes.include(this);
+                    
                     return type;
                 };
                 
@@ -1703,6 +1705,26 @@
                 return Data;
                 
             })(typing.Type);
+            
+            Typing.Sync = (function(Type) {
+                
+                var Sync = Type.inherit();
+                
+                // (query Object, options Object, callback Function)
+                Sync.prototype.find = undefined;
+                
+                // (document Item:Document, options Object, callback Function)
+                Sync.prototype.get = undefined;
+                
+                // (document Item:Document, options Object, callback Function)
+                Sync.prototype.set = undefined;
+                
+                // (document Item:Document, options Object, callback Function)
+                Sync.prototype.unset = undefined;
+                
+                return Sync;
+                
+            }(typing.Type);
             
             Typing.Documents = (function(Type) {
                 
