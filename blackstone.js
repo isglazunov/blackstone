@@ -1706,46 +1706,6 @@
                 
             })(typing.Type);
             
-            Typing.Sync = (function(Type) {
-                
-                var Sync = Type.inherit();
-                
-                // (query Object, options Object, callback Function)
-                Sync.prototype.find = undefined;
-                
-                // (document Item:Document, options Object, callback Function)
-                Sync.prototype.get = undefined;
-                
-                // (document Item:Document, options Object, callback Function)
-                Sync.prototype.set = undefined;
-                
-                // (document Item:Document, options Object, callback Function)
-                Sync.prototype.unset = undefined;
-                
-                return Sync;
-                
-            }(typing.Type);
-            
-            Typing.Documents = (function(Type) {
-                
-                var Documents = Type.inherit();
-                
-                Documents.prototypes.include(Typing.List); 
-                
-                return Documents;
-                
-            })(typing.Type);
-            
-            Typing.Document = (function(Type, Data) {
-                
-                var Document = Type.inherit();
-                
-                Document.prototypes.include(Data, Typing.Superposition);
-                
-                return Document;
-                
-            })(typing.Type, Typing.Data);
-            
             return Typing;
             
         })(blackstone.typing, blackstone.lists);
