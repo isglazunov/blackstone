@@ -8,7 +8,7 @@ requirejs.config({
 });
 
 it('Blackstone Connector', function(done){
-    requirejs(['blackstone', function(blackstone){
+    requirejs(['blackstone'], function(blackstone){
         blackstone.should.be.an.instanceof(Blackstone);
         done();
     });
