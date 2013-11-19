@@ -1398,7 +1398,7 @@
                 // list 'append' (superpositions... Superposition)
                 // list 'add' (superpositions... Superposition)
                 // callbac.apply(list, superpositions... Superposition)
-                // => position.length()
+                // => list.length()
                 List.prototype.append = function() {
                     var list = this;
                     
@@ -1435,7 +1435,7 @@
                 // list 'prepend' (superpositions... Superposition)
                 // list 'add' (superpositions... Superposition)
                 // callbac.apply(list, superpositions... Superposition)
-                // => position.length()
+                // => list.length()
                 List.prototype.prepend = function() {
                     var list = this;
                     
@@ -1706,6 +1706,78 @@
                 return Data;
                 
             })(typing.Type);
+            
+            Typing.Id = (function(Type) {
+                
+                var Id = Type.inherit();
+                
+                Id.constructor; // (nativeId (MongoDb - ObjectID))
+                
+                // id.__native // default container for nativeId
+                
+                Id.prototype.toString; // => String
+                Id.prototype.toNative; // => nativeId (MongoDb - ObjectID)
+                
+                return Id;
+                
+            })(typing.Type);
+            
+            Typing.Sync = (function(Type) {
+                
+                var Sync = Type.inherit();
+                
+                Sync.prototype.toNative; // (data Object) // => object with native ids
+                Sync.prototype.toTyping; // (data Object) // => object with blackstone Typing Ids
+                
+                Sync.prototype.find; // (query Object, options Object, callback(error, objects[Object] Array) Function)
+                Sync.prototype.get; // (id Id, callback(error, object Object) Function)
+                Sync.prototype.set; // (id Id, data Object, options Object, callback(error, object Object) Function)
+                Sync.prototype.delete; // (id Id, options Object, callback(error, status Boolean) Function)
+                
+                return Sync;
+                
+            })(typing.Type);
+            
+            Typing.Document = (function(Type, Data, Superposition) {
+                
+                var Document = Type.inherit();
+                
+                Document.prototypes.include(Data, Superposition);
+                
+                // if this.sync // start
+                
+                Document.prototype.id; // () // => id Id
+                Document.prototype.exists // () // => Boolean
+                
+                // if this.exists() // start
+                
+                Document.prototype.fetch; // (callback(error) Function) // 'fetch' // ~ set ~ // 'sync'
+                Document.prototype.save; // (callback(error) Function) // 'save' // 'sync'
+                Document.prototype.delete; // (callback(error) Function) // 'delete' // ~ destroy ~ // 'sync'
+                
+                // if this.exists() // end
+                
+                // if this.sync // end
+                
+                return Document;
+                
+            })(typing.Type, Typing.Data, Typing.Superposition);
+            
+            Typing.Documents = (function(Type, List) {
+                
+                var Documents = Type.inherit();
+                
+                Documents.prototypes.include(List);
+                
+                // if this.sync // start
+                
+                // * // Documents.prototype.find; // (query Object, options Object, callback(error) Function)
+                
+                // if this.sync // end
+                
+                return Documents;
+                
+            })(typing.Type, Typing.Data, Typing.Superposition);
             
             return Typing;
             
