@@ -8,8 +8,21 @@ var Super = blackstone.lists.Superposition;
 
 describe('Blackstone Lists', function() {
     
-    var eql = function(first, second) {
+    var sEql = function(first, second) {
         first.id.should.be.eql(second.id);
+    };
+    
+    var lEql = function(l, sup) {
+        var now = l.first;
+        for(var i = 0; i < l.length; i++) {
+            sEql(now.super, sup[i]);
+            now = now.next;
+        }
+        var now = l.last;
+        for(var i = l.length - 1; i > 0; i--) {
+            sEql(now.super, sup[i]);
+            now = now.prev;
+        }
     };
     
     it('list.append', function() {
@@ -19,37 +32,23 @@ describe('Blackstone Lists', function() {
         
         l.append(s0);
         
-        eql(l.first.super, s0);
-        _.isUndefined(l.first.next).should.be.true;
-        eql(l.last.super, s0);
-        _.isUndefined(l.last.prev).should.be.true;
+        lEql(l, [s0]);
         
         l.append(s0);
         
-        eql(l.first.super, s0);
-        _.isUndefined(l.first.next).should.be.true;
-        eql(l.last.super, s0);
-        _.isUndefined(l.last.prev).should.be.true;
+        lEql(l, [s0]);
         
         var s1 = new Super;
         
         l.append(s1);
         
-        eql(l.first.super, s0);
-        eql(l.first.next.super, s1);
-        eql(l.last.super, s1);
-        eql(l.last.prev.super, s0);
+        lEql(l, [s0, s1]);
         
         var s2 = new Super;
         
         l.append(s2);
         
-        eql(l.first.super, s0);
-        eql(l.first.next.super, s1);
-        eql(l.first.next.next.super, s2);
-        eql(l.last.super, s2);
-        eql(l.last.prev.super, s1);
-        eql(l.last.prev.prev.super, s0);
+        lEql(l, [s0, s1, s2]);
     });
     
     it('list.prepend', function() {
@@ -59,37 +58,23 @@ describe('Blackstone Lists', function() {
         
         l.prepend(s0);
         
-        eql(l.first.super, s0);
-        _.isUndefined(l.first.next).should.be.true;
-        eql(l.last.super, s0);
-        _.isUndefined(l.last.prev).should.be.true;
+        lEql(l, [s0]);
         
         l.prepend(s0);
         
-        eql(l.first.super, s0);
-        _.isUndefined(l.first.next).should.be.true;
-        eql(l.last.super, s0);
-        _.isUndefined(l.last.prev).should.be.true;
+        lEql(l, [s0]);
         
         var s1 = new Super;
         
         l.prepend(s1);
         
-        eql(l.first.super, s1);
-        eql(l.first.next.super, s0);
-        eql(l.last.super, s0);
-        eql(l.last.prev.super, s1);
+        lEql(l, [s1, s0]);
         
         var s2 = new Super;
         
         l.prepend(s2);
         
-        eql(l.first.super, s2);
-        eql(l.first.next.super, s1);
-        eql(l.first.next.next.super, s0);
-        eql(l.last.super, s0);
-        eql(l.last.prev.super, s1);
-        eql(l.last.prev.prev.super, s2);
+        lEql(l, [s2, s1, s0]);
     });
     
     it('position.append', function() {
@@ -103,21 +88,13 @@ describe('Blackstone Lists', function() {
         
         s0.in(l).append(s1);
         
-        eql(l.first.super, s0);
-        eql(l.first.next.super, s1);
-        eql(l.last.super, s1);
-        eql(l.last.prev.super, s0);
+        lEql(l, [s0, s1]);
         
         var s2 = new Super;
         
         s0.in(l).append(s2);
         
-        eql(l.first.super, s0);
-        eql(l.first.next.super, s2);
-        eql(l.first.next.next.super, s1);
-        eql(l.last.super, s1);
-        eql(l.last.prev.super, s2);
-        eql(l.last.prev.prev.super, s0);
+        lEql(l, [s0, s2, s1]);
     });
     
     it('position.prepend', function() {
@@ -131,21 +108,13 @@ describe('Blackstone Lists', function() {
         
         s0.in(l).prepend(s1);
         
-        eql(l.first.super, s1);
-        eql(l.first.next.super, s0);
-        eql(l.last.super, s0);
-        eql(l.last.prev.super, s1);
+        lEql(l, [s1, s0]);
         
         var s2 = new Super;
         
         s0.in(l).prepend(s2);
         
-        eql(l.first.super, s1);
-        eql(l.first.next.super, s2);
-        eql(l.first.next.next.super, s0);
-        eql(l.last.super, s0);
-        eql(l.last.prev.super, s2);
-        eql(l.last.prev.prev.super, s1);
+        lEql(l, [s1, s2, s0]);
     });
     
     it('position.remove', function() {
@@ -159,10 +128,7 @@ describe('Blackstone Lists', function() {
         
         s1.in(l).remove();
         
-        eql(l.first.super, s0);
-        eql(l.first.next.super, s2);
-        eql(l.last.super, s2);
-        eql(l.last.prev.super, s0);
+        lEql(l, [s0, s2]);
     });
     
     it('list.remove', function() {
@@ -177,10 +143,7 @@ describe('Blackstone Lists', function() {
         
         l.remove(s1, s2);
         
-        eql(l.first.super, s0);
-        eql(l.first.next.super, s3);
-        eql(l.last.super, s3);
-        eql(l.last.prev.super, s0);
+        lEql(l, [s0, s3]);
     });
     
     describe('list.each', function() {
@@ -193,64 +156,33 @@ describe('Blackstone Lists', function() {
         var s3 = new Super;
         
         l.append(s0, s1, s2, s3);
-    
-        var Eql = function(now) {
-            return function(sup) {
-                return now.id == sup.id;
-            };
-        };
         
         it('default', function(done) {
-            var counter = 0;
+            var results = [];
             l.each(function(sup) {
-                var eql = Eql(sup);
-                
-                if (counter == 0) eql(s0);
-                if (counter == 1) eql(s1);
-                if (counter == 2) eql(s2);
-                if (counter == 3) eql(s3);
-                
-                counter++;
-        
+                results.push(sup);
                 if (this.next) this.next();
             }, { callback: function() {
-                counter.should.be.eql(4);
+                results.should.be.eql([s0, s1, s2, s3]);
                 done();
             } });
         });
         
         it('sync', function() {
-            var counter = 0;
+            var results = [];
             l.each(function(sup) {
-                var eql = Eql(sup);
-                
-                if (counter == 0) eql(s0);
-                if (counter == 1) eql(s1);
-                if (counter == 2) eql(s2);
-                if (counter == 3) eql(s3);
-                
-                counter++;
-                
+                results.push(sup);
             }, { sync: true });
-            counter.should.be.eql(4);
+            results.should.be.eql([s0, s1, s2, s3]);
         });
         
         it('reverse', function() {
-            var counter = 0;
+            var results = [];
             l.each(function(sup) {
-                var eql = Eql(sup);
-                
-                if (counter == 0) eql(s3);
-                if (counter == 1) eql(s2);
-                if (counter == 2) eql(s1);
-                if (counter == 3) eql(s0);
-                
-                counter++;
-                
+                results.push(sup);
                 if (this.next) this.next();
             }, { reverse: true });
-            
-            counter.should.be.eql(4);
+            results.should.be.eql([s3, s2, s1, s0]);
         });
         
     });
@@ -265,25 +197,18 @@ describe('Blackstone Lists', function() {
         l.append(s0, s1, s2);
         
         var counter = 0 - 1;
-        
+        var results = [];
         s1.in(l).travel(function(pos) {
+            results.push(pos.super);
+            
             counter++;
-            if (counter == 0) {
-                eql(pos.super, s1);
-                this.next(pos.prev);
-            } else if (counter == 1) {
-                eql(pos.super, s0);
-                this.next(pos.next);
-            } else if (counter == 2) {
-                eql(pos.super, s1);
-                this.next(pos.next);
-            } else if (counter == 3) {
-                eql(pos.super, s2);
-                this.next(pos.prev);
-            } else {
-                eql(pos.super, s1);
-            }
+            if (counter == 0) this.next(pos.prev);
+            else if (counter == 1) this.next(pos.next);
+            else if (counter == 2) this.next(pos.next);
+            else if (counter == 3) this.next(pos.prev);
         });
+        
+        results.should.be.eql([s1, s0, s1, s2, s1]);
     });
     
     it('list.sort', function(done) {
@@ -299,14 +224,7 @@ describe('Blackstone Lists', function() {
         l.sort(function(prev, next) {
             this.next(prev.id < next.id);
         }, function() {
-            eql(l.first.super, s0);
-            eql(l.first.next.super, s1);
-            eql(l.first.next.next.super, s2);
-            eql(l.first.next.next.next.super, s3);
-            eql(l.last.super, s3);
-            eql(l.last.prev.super, s2);
-            eql(l.last.prev.prev.super, s1);
-            eql(l.last.prev.prev.prev.super, s0);
+            lEql(l, [s0, s1, s2, s3]);
             
             done();
         });
@@ -343,14 +261,7 @@ describe('Blackstone Lists', function() {
         });
         
         async.series(series, function() {
-            eql(l.first.super, s0);
-            eql(l.first.next.super, s1);
-            eql(l.first.next.next.super, s2);
-            eql(l.first.next.next.next.super, s3);
-            eql(l.last.super, s3);
-            eql(l.last.prev.super, s2);
-            eql(l.last.prev.prev.super, s1);
-            eql(l.last.prev.prev.prev.super, s0);
+            lEql(l, [s0, s1, s2, s3]);
             
             done();
         });

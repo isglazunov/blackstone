@@ -156,7 +156,7 @@
                     return this.length;
                 };
                 
-                // (handler.call({ position, super, list, ~ next }, super Superposition, position Position, list List) Function⎨, options { sync Boolean, reverse Boolean, callback() Function }⎬)
+                // (handler.call({ position, super, list, ~ next }, super Superposition, position Position, list List) Function<, options { sync Boolean, reverse Boolean, callback() Function }>)
                 List.prototype.each = function(handler, _options) {
                     
                     var list = this;
@@ -228,7 +228,7 @@
                     
                 };
                 
-                // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function⎨, handler Function⎬)
+                // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function<, handler Function>)
                 List.prototype.sort = function(comparator, callback, handler) {
                     var list = this;
                     
@@ -583,7 +583,7 @@
                     
                 };
                 
-                // (method Function⎨, options Object⎬);
+                // (method Function<, options Object>);
                 Superhandler.prototype.bind = function(method, options) {
                     
                     if (!lodash.isObject(options)) var options = {};
@@ -596,7 +596,7 @@
                 };
                 
                 // Only if bound!
-                // (args Array⎨, callback() Function⎬);
+                // (args Array<, callback() Function>);
                 Superhandler.prototype.trigger = function(args, callback) {
                     
                     var superhandler = this;
@@ -648,7 +648,7 @@
                     
                 };
                 
-                // (args Array⎨, callback Function⎬)
+                // (args Array<, callback Function>)
                 Handlers.prototype.trigger = function(args, callback) {
                     
                     this.list.each(function(superposition, position) {
@@ -659,7 +659,7 @@
                     
                 };
                 
-                // (handler Function⎨, options Object⎬) ~ adapter
+                // (handler Function<, options Object>) ~ adapter
                 // (handler Superhandler)
                 // => superhandler
                 Handlers.prototype.bind = function(handler, options) {
@@ -695,14 +695,14 @@
                     return this.__handlers[name];
                 };
                 
-                // (name String, args Array⎨, callback Function⎬)
+                // (name String, args Array<, callback Function>)
                 Emitter.prototype.trigger = function(name, args, callback) {
                     
                     this.__event(name).trigger(args, callback);
                     
                 };
                 
-                // (name String, handler Function⎨, options Object⎬) ~ adapter
+                // (name String, handler Function<, options Object>) ~ adapter
                 // (name String, handler Superhandler)
                 // => superhandler
                 Emitter.prototype.bind = function(name, handler, options) {
@@ -800,7 +800,7 @@
                     
                 };
                 
-                // (handler Function⎨, options { sync Boolean, reverse Boolean, callback Function }⎬)
+                // (handler Function<, options { sync Boolean, reverse Boolean, callback Function }>)
                 Prototypes.prototype.each = function(handler, options) {
                     
                     this.list.each(function(superposition, position) {
@@ -872,7 +872,7 @@
                     
                 };
                 
-                // (attr Array⎨, callback.call(item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } }) Function⎬)
+                // (attr Array<, callback.call(item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } }) Function>)
                 // .constructor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // .inheritor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // 'new' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
@@ -1016,265 +1016,138 @@
         
         // Types // start
         
-        // (list List, superpositions[Superposition] Array)
-        // => { native: [typing.Superposition], typing: [Superposition] }
-        var parseSuperpositions = (function(Item) {
-            return function(list, args) {
-                var result = {
-                    native: [],
-                    typing: []
-                };
-                
-                for (var a in args) {
-                    if (args[a] instanceof Item && args[a].of(blackstone.Superposition)) {
-                        args[a].in(list);
-                        result.native.push(args[a].__native);
-                        result.typing.push(args[a]);
-                    }
-                }
-                
-                return result;
-            };
-        })(blackstone.typing.Item);
-        
-        blackstone.Position = (function(Type, Item, parseSuperpositions) {
+        // 'remove' ()
+        // 'add' ()
+        blackstone.Position = (function(Type, Item) {
             
             var Position = Type.inherit();
             
             // (native typing.Position)
             Position.constructor = function(native) {
-                
-                // Mutual binding
-                if (!this.__native) {
-                    this.__native = native;
-                    this.__native.value = this;
-                }
-            };
-                
-            var __removeEvents = function(position, callback) {
-                async.series([
-                    function(next) { position.trigger('remove', [position], next); },
-                    function(next) { position.super().trigger('remove', [position], next); },
-                    function(next) { position.list().trigger('remove', [position], next); },
-                ], function() {
-                    callback();
-                });
+                this.__native = native;
+                this.__native.value = this;
             };
             
-            // ([callback.call(position Position, position Position) Function])
-            // position 'remove' (position Position)
-            // position.super 'remove' (position Position)
-            // position.list 'remove' (position Position)
-            // callback.call(position Position, position Position)
-            // => position.length()
+            // (<callback(position Position) Function>)
+            // position 'remove' ()
+            // superposition 'remove' (position Position)
+            // list 'remove' (positions... Position)
+            // callback.call(position Position)
             Position.prototype.remove = function(callback) {
-                
                 var position = this;
                 
-                var nativeResult = this.__native.remove();
+                if (!position.exists()) callback.call(position);
                 
-                __removeEvents(position, function() {
-                    if (callback) callback.call(position, position);
-                });
-                
-                return nativeResult;
-            };
-            
-            var __appendAndPrependEvents = function(event, isEdge, position, typing, callback) {
-                var series = [];
-                
-                series.push(function(next) { position.trigger(event, typing, next); });
-                series.push(function(next) { position.trigger('add', typing, next); });
-                
-                series.push(function(next) { position.super().trigger(event, [position, typing], next); });
-                series.push(function(next) { position.super().trigger('add', [position, typing], next); });
-                
-                if (isEdge) series.push(function(next) { position.list().trigger(event, typing, next); });
-                series.push(function(next) { position.list().trigger('add', typing, next); });
-                
-                async.series(series, function() {
-                    callback();
-                });
-            };
-            
-            var __appendEvents = function(isEdge, position, typing, callback) { __appendAndPrependEvents('append', isEdge, position, typing, callback); };
-            
-            var __prependEvents = function(isEdge, position, typing, callback) { __appendAndPrependEvents('prepend', isEdge, position, typing, callback); };
-            
-            // (superpositions... Superposition⎨, callback.call(position Position, superpositions... Superposition) Function⎬)
-            // position 'append' (superpositions... Superposition)
-            // position 'add' (superpositions... Superposition)
-            // position.super 'append' (position Position, superpositions[Superposition] Array)
-            // position.super 'add' (position Position, superpositions[Superposition] Array)
-            // ~ position.list 'append' (superpositions... Superposition)
-            // position.list 'add' (superpositions... Superposition)
-            // callback.call(position Position, superpositions... Superposition)
-            // => position.length()
-            Position.prototype.append = function() {
-                var position = this;
-                
-                var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
-                
-                var parsed = parseSuperpositions(this.list(), arguments);
-                
-                var isLast = position.list().last().__native.id == position.__native.id;
-                
-                var nativeResult = this.__native.append.apply(this.__native, parsed.native);
-                
-                __appendEvents(isLast, position, parsed.typing, function() {
-                    if (callback) callback.apply(position, parsed.typing);
-                });
-                
-                return nativeResult;
-            };
-            
-            // (superpositions... Superposition⎨, callback.call(position Position, superpositions... Superposition) Function⎬)
-            // position 'prepend' (superpositions... Superposition)
-            // position.super 'prepend' (position Position, superpositions[Superposition] Array)
-            // position.super 'add' (position Position, superpositions[Superposition] Array)
-            // ~ position.list 'prepend' (superpositions... Superposition)
-            // position.list 'add' (superpositions... Superposition)
-            // callback.call(position Position, superpositions... Superposition)
-            // => position.length()
-            Position.prototype.prepend = function() {
-                var position = this;
-                
-                var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
-                
-                var parsed = parseSuperpositions(this.list(), arguments);
-                
-                var isFirst = position.list().first().__native.id == position.__native.id;
-                
-                var nativeResult = this.__native.prepend.apply(this.__native, parsed.native);
-                
-                __prependEvents(isFirst, position, parsed.typing, function() {
-                    if (callback) callback.apply(position, parsed.typing);
-                });
-                
-                return nativeResult;
-            };
-            
-            // (cursor Superposition/Position⎨, callback.call(position Position, cursor Superposition) Function⎬)
-            // ~ position 'remove' (position Position)
-            // ~ position.super 'remove' (position Position)
-            // ~ position.list 'remove' (position Position)
-            // cursor Position 'prepend' (superpositions... Superposition)
-            // cursor Superposition 'prepend' (cursor Position, superpositions[Superposition] Array)
-            // cursor Superposition 'add' (cursor Position, superpositions[Superposition] Array)
-            // ~ cursor.list 'prepend' (superpositions... Superposition)
-            // cursor.list 'add' (superpositions... Superposition)
-            // position 'before' (cursor Superposition)
-            // position 'move' (cursor Superposition)
-            // callback.call(position Position, cursor Superposition)
-            Position.prototype.before = function(_cursor, callback) {
-                var position = this;
-                
-                // Cursor // start
-                
-                if (_cursor instanceof Item) {
-                    if (_cursor.of(blackstone.Superposition)) {
-                        var cursor = _cursor;
-                    } else if (_cursor.of(blackstone.Position)) {
-                        var cursor = _cursor.super();
-                    }
-                } else throw new Error('cursor is not a item');
-                
-                if (!cursor.in(this.list()).exists()) throw new Error('cursor is not exists');
-                
-                var cursorPosition = cursor.in(position.list());
-                
-                // Cursor // end
-                
-                var exists = position.exists();
-                var isSelf = false;
-                
-                if (position.__native.id == cursorPosition.__native.id) {
-                    isSelf = true;
-                }
+                position.__native.remove();
                 
                 var series = [];
                 
-                if (!isSelf) {
-                    if (exists) position.__native.remove();
-                    
-                    // Prepend this to cursor
-                    var isFirst = position.list().first().__native.id == cursorPosition.__native.id;
-                    cursorPosition.__native.prepend(position.super().__native);
-                    
-                    if (exists) series.push(function(next) { __removeEvents(position, next); });
-                    
-                    series.push(function(next) { __appendEvents(isFirst, cursorPosition, [position.super()], next); });
-                    series.push(function(next) { position.trigger('before', [cursor], next); });
-                    series.push(function(next) { position.super().trigger('before', [position, cursor], next); });
-                    series.push(function(next) { position.trigger('move', [cursor], next); });
-                    series.push(function(next) { position.super().trigger('move', [position, cursor], next); });
-                }
+                series.push(function(next) { position.trigger('remove', [], next); });
+                series.push(function(next) { position.super().trigger('remove', [position], next); });
+                series.push(function(next) { position.list().trigger('remove', [position.super()], next); });
                 
                 async.series(series, function() {
-                    if (callback) callback.call(position, cursor);
+                    if (callback) callback.call(position);
                 });
             };
             
-            // (cursor Superposition/Position⎨, callback.call(position Position, cursor Superposition) Function⎬)
-            // ~ position 'remove' (position Position)
-            // ~ position.super 'remove' (position Position)
-            // ~ position.list 'remove' (position Position)
-            // cursor Position 'append' (superpositions... Superposition)
-            // cursor Superposition 'append' (cursor Position, superpositions[Superposition] Array)
-            // cursor Superposition 'add' (cursor Position, superpositions[Superposition] Array)
-            // ~ cursor.list 'append' (superpositions... Superposition)
-            // cursor.list 'add' (superpositions... Superposition)
-            // position 'before' (cursor Superposition)
-            // position.super 'before' (position Position, cursor Superposition)
-            // position 'move' (cursor Superposition)
-            // position.super 'move' (position Position, cursor Superposition)
-            // callback.call(position Position, cursor Superposition)
-            Position.prototype.after = function(_cursor, callback) {
+            // (superpositions[Superposition] Array<, <callback.call(position Position, superpositions[Superposition] Array) Function>)
+            // ~ 'remove'
+            // positions... 'add' ()
+            // superpositions... 'add' ()
+            // list 'add' (superpositions... Superposition)
+            // callback.call(position Position, superpositions[Superposition] Array)
+            Position.prototype.append = function(superpositions, callback) { 
                 var position = this;
+                var list = position.list();
                 
-                // Cursor // start
+                if (!position.exists()) throw new Error('position not exists');
                 
-                if (_cursor instanceof Item) {
-                    if (_cursor.of(blackstone.Superposition)) {
-                        var cursor = _cursor;
-                    } else if (_cursor.of(blackstone.Position)) {
-                        var cursor = _cursor.super();
-                    }
-                } else throw new Error('cursor is not a item');
-                
-                if (!cursor.in(this.list()).exists()) throw new Error('cursor is not exists');
-                
-                var cursorPosition = cursor.in(position.list());
-                
-                // Cursor // end
-                
-                var exists = position.exists();
-                var isSelf = false;
-                
-                if (position.__native.id == cursorPosition.__native.id) {
-                    isSelf = true;
-                }
-                
+                var native = [];
                 var series = [];
                 
-                if (!isSelf) {
-                    if (exists) position.__native.remove();
-                    
-                    // Prepend this to cursor
-                    var isLast = position.list().last().__native.id == cursorPosition.__native.id;
-                    cursorPosition.__native.append(position.super().__native);
-                    
-                    if (exists) series.push(function(next) { __removeEvents(position, next); });
-                    
-                    series.push(function(next) { __appendEvents(isLast, cursorPosition, [position.super()], next); });
-                    series.push(function(next) { position.trigger('after', [cursor], next); });
-                    series.push(function(next) { position.super().trigger('after', [position, cursor], next); });
-                    series.push(function(next) { position.trigger('move', [cursor], next); });
-                    series.push(function(next) { position.super().trigger('move', [position, cursor], next); });
-                }
+                series.push(function(next) {
+                    lodash.each(superpositions, function(superposition) {
+                        native.push(superposition.__native);
+                        
+                        if (superposition.__native.id == position.super().__native.id) throw new Error('closed circuit is not supported');
+                    });
+                    next();
+                });
+                
+                series.push(function(next) {
+                    list.remove(superpositions, function() { next(); });
+                });
+                
+                series.push(function(next) {
+                    position.__native.append.apply(position.__native, native);
+                    next();
+                });
+                
+                series.push(function(next) {
+                    async.eachSeries(superpositions, function(superposition, next) {
+                        superposition.in(list).trigger('add', [], function() {
+                            superposition.trigger('add', [superposition.in(list)], function() {
+                                next();
+                            });
+                        });
+                    }, next);
+                });
+                
+                series.push(function(next) { list.trigger('add', superpositions, function() { next(); }); });
                 
                 async.series(series, function() {
-                    if (callback) callback.call(position, cursor);
+                    if (callback) callback.call(position, superpositions);
+                });
+            };
+            
+            // (superpositions[Superposition] Array<, <callback.call(position Position, superpositions[Superposition] Array) Function>)
+            // ~ 'remove'
+            // positions... 'add' ()
+            // superpositions... 'add' ()
+            // list 'add' (superpositions... Superposition)
+            // callback.call(position Position, superpositions[Superposition] Array)
+            Position.prototype.prepend = function(superpositions, callback) { 
+                var position = this;
+                var list = position.list();
+                
+                if (!position.exists()) throw new Error('position not exists');
+                
+                var native = [];
+                var series = [];
+                
+                series.push(function(next) {
+                    lodash.each(superpositions, function(superposition) {
+                        native.push(superposition.__native);
+                        
+                        if (superposition.__native.id == position.super().__native.id) throw new Error('closed circuit is not supported');
+                    });
+                    next();
+                });
+                
+                series.push(function(next) {
+                    list.remove(superpositions, function() { next(); });
+                });
+                
+                series.push(function(next) {
+                    position.__native.prepend.apply(position.__native, native);
+                    next();
+                });
+                
+                series.push(function(next) {
+                    async.eachSeries(superpositions, function(superposition, next) {
+                        superposition.in(list).trigger('add', [], function() {
+                            superposition.trigger('add', [superposition.in(list)], function() {
+                                next();
+                            });
+                        });
+                    }, next);
+                });
+                
+                series.push(function(next) { list.trigger('add', superpositions, function() { next(); }); });
+                
+                async.series(series, function() {
+                    if (callback) callback.call(position, superpositions);
                 });
             };
             
@@ -1330,8 +1203,10 @@
             
             return Position;
             
-        })(blackstone.typing.Type, blackstone.typing.Item, parseSuperpositions);
+        })(blackstone.typing.Type, blackstone.typing.Item);
         
+        // 'remove' (position Position)
+        // 'add' (position Position)
         blackstone.Superposition = (function(Type, Item, lists) {
             
             var Superposition = Type.inherit();
@@ -1340,20 +1215,17 @@
             Superposition.constructor = function() {
                 
                 // Mutual binding
-                if (!this.__native) {
-                    this.__native = new lists.Superposition;
-                    this.__native.value = this;
-                }
+                this.__native = new lists.Superposition;
+                this.__native.value = this;
             };
                 
             // (list List)
             // => position Position
             Superposition.prototype.in = function(list) {
-                var nativeList = list instanceof lists.List? list : list instanceof Item && list.of(blackstone.List)? list.__native : undefined
                 
-                if (!nativeList) return undefined;
+                if (!list.__native) return undefined;
                 
-                var nativePosition = this.__native.in(nativeList);
+                var nativePosition = this.__native.in(list.__native);
                 
                 // Mutual position binding
                 if (!nativePosition.value) nativePosition.value = blackstone.Position.new(nativePosition);
@@ -1365,6 +1237,8 @@
             
         })(blackstone.typing.Type, blackstone.typing.Item, blackstone.lists);
         
+        // 'remove' (superpositions... Superposition)
+        // 'add' (superpositions... Superposition)
         blackstone.List = (function(lists, Type, Item) {
             
             var List = Type.inherit();
@@ -1378,113 +1252,203 @@
             
             // ()
             List.constructor = List.inheritor = function() {
+                this.__native = new lists.List;
+                this.__native.value = this;
                 
-                // Mutual binding
-                if (!this.__native) {
-                    this.__native = new lists.List;
-                    this.__native.value = this;
-                }
-                
-                if (!this.comparator) this.comparator = undefined;
-            };
-                
-            // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
-            // position 'remove' (position Position)
-            // superposition 'remove' (position Position)
-            // list 'remove' (position Position)
-            // ~ callback.apply(list, superpositions... Superposition)
-            // => list.length();
-            List.prototype.remove = function() {
-                var list = this;
-                
-                var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
-                
-                var parsed = parseSuperpositions(this, arguments);
-                
-                for (var t in parsed.typing) {
-                    parsed.typing[t].in(list).remove();
-                }
-                
-                if (callback) callback.apply(list, parsed.typing);
-                
-                return list.length();
+                this.comparator = undefined;
             };
             
-            // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
-            // ~ position 'append' (superpositions... Superposition)
-            // ~ superposition 'append' (position Position, superpositions[Superposition] Array)
-            // ~ superposition 'add' (position Position, superpositions[Superposition] Array)
-            // list 'append' (superpositions... Superposition)
-            // list 'add' (superpositions... Superposition)
-            // callback.apply(list, superpositions... Superposition)
-            // => list.length()
-            List.prototype.append = function() {
+            // (superpositions[Superposition] Array<, callback.call(list List, superpositions[Superposition] Array) Function>)
+            // positions... 'remove' ()
+            // superpositions... 'remove' (position Position)
+            // list 'remove' (superpositions... Superposition)
+            // callback.call(list List, superpositions[Superposition] Array)
+            List.prototype.remove = function(superpositions, callback) {
                 var list = this;
                 
-                var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
+                var series = [];
+                var removed = [];
                 
-                var parsed = parseSuperpositions(this, arguments);
+                series.push(function(next) {
+                    async.eachSeries(superpositions, function(superposition, next) {
+                        
+                        var series = [];
+                        
+                        if (superposition.in(list).exists()) {
+                            superposition.in(list).__native.remove();
+                            
+                            removed.push(superposition);
+                            
+                            series.push(function(next) { superposition.in(list).trigger('remove', [], next); });
+                            series.push(function(next) { superposition.trigger('remove', [superposition.in(list)], next); });
+                        }
+                        
+                        async.series(series, function() {
+                            next();
+                        });
+                        
+                    }, next);
+                });
                 
-                var last = list.last();
+                series.push(function(next) {
+                    if (removed.length > 0) {
+                        list.trigger('remove', removed, function() {
+                            next();
+                        });
+                    } else next();
+                });
                 
-                list.__native.append.apply(list.__native, parsed.native);
+                async.series(series, function() {
+                    if (callback) callback.call(list, removed);
+                });
+            };
+            
+            // (superpositions[Superposition] Array<, callback.call(list List, superpositions[Superposition] Array) Function>)
+            // ~ 'remove'
+            // positions... 'add' ()
+            // superpositions... 'add' (position Position)
+            // list 'add' (superpositions... Superposition)
+            // callback.call(list List, superpositions[Superposition] Array)
+            List.prototype.append = function(superpositions, callback) {
+                var list = this;
+                
+                var native = [];
+                var series = [];
+                
+                series.push(function(next) {
+                    lodash.each(superpositions, function(superposition) {
+                        native.push(superposition.__native);
+                    });
+                    next();
+                });
+                
+                series.push(function(next) {
+                    list.remove(superpositions, function() { next(); });
+                });
+                
+                series.push(function(next) {
+                    list.__native.append.apply(list.__native, native);
+                    next();
+                });
+                
+                series.push(function(next) {
+                    async.eachSeries(superpositions, function(superposition, next) {
+                        superposition.in(list).trigger('add', [], function() {
+                            superposition.trigger('add', [superposition.in(list)], function() {
+                                next();
+                            });
+                        });
+                    }, next);
+                });
+                
+                series.push(function(next) { list.trigger('add', superpositions, function() { next(); }); });
+                
+                async.series(series, function() {
+                    if (callback) callback.call(list, superpositions);
+                });
+            };
+            
+            // (superpositions[Superposition] Array<, callback.call(list List, superpositions[Superposition] Array) Function>)
+            // ~ 'remove'
+            // positions... 'add' ()
+            // superpositions... 'add' (position Position)
+            // list 'add' (superpositions... Superposition)
+            // callback.call(list List, superpositions[Superposition] Array)
+            List.prototype.prepend = function(superpositions, callback) {
+                var list = this;
+                
+                var native = [];
+                var series = [];
+                
+                series.push(function(next) {
+                    lodash.each(superpositions, function(superposition) {
+                        native.push(superposition.__native);
+                    });
+                    next();
+                });
+                
+                series.push(function(next) {
+                    list.remove(superpositions, function() { next(); });
+                });
+                
+                series.push(function(next) {
+                    list.__native.prepend.apply(list.__native, native);
+                    next();
+                });
+                
+                series.push(function(next) {
+                    async.eachSeries(superpositions, function(superposition, next) {
+                        superposition.in(list).trigger('add', [], function() {
+                            superposition.trigger('add', [superposition.in(list)], function() {
+                                next();
+                            });
+                        });
+                    }, next);
+                });
+                
+                series.push(function(next) { list.trigger('add', superpositions, function() { next(); }); });
+                
+                async.series(series, function() {
+                    if (callback) callback.call(list, superpositions);
+                });
+            };
+            
+            // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function)
+            // list 'sort' ()
+            List.prototype.sort = function(callback) {
+                var list = this;
+                
+                if (!list.comparator) throw new Error('Wrong comparator');
+                
+                var comparator = wrapComporator(list);
+                
+                list.__native.sort(comparator, function() {
+                    list.trigger('sort', [], function() {
+                        if (callback) callback();
+                    });
+                });
+            };
+            
+            // (superpositions[Superposition] Array<, callback.call(list List, superpositions[Superposition] Array) Function>)
+            // positions... 'add' ()
+            // superpositions... 'add' (position Position)
+            // list 'add' (superpositions... Superposition)
+            // callback.apply(list, superpositions... Superposition)
+            List.prototype.add = function(superpositions, callback) {
+                var list = this;
+                
+                if (!list.comparator) throw new Error('Wrong comparator');
+                
+                var comparator = wrapComporator(list);
                 
                 var series = [];
                 
-                if (last) {
-                    series.push(function(next) { last.trigger('append', parsed.typing, next); });
-                    series.push(function(next) { last.super().trigger('append', [last, parsed.typing], next); });
-                    series.push(function(next) { last.super().trigger('add', [last, parsed.typing], next); });
-                }
-                
-                series.push(function(next) { list.trigger('append', parsed.typing, next); });
-                series.push(function(next) { list.trigger('add', parsed.typing, next); });
-                
-                async.series(series, function() {
-                    if (callback) callback.apply(list, parsed.typing);
+                series.push(function(next) {
+                    list.remove(superpositions, function() { next(); });
                 });
                 
-                return list.length();
-            };
-            
-            // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
-            // ~ position 'prepend' (superpositions... Superposition)
-            // ~ superposition 'prepend' (position Position, superpositions[Superposition] Array)
-            // ~ superposition 'add' (position Position, superpositions[Superposition] Array)
-            // list 'prepend' (superpositions... Superposition)
-            // list 'add' (superpositions... Superposition)
-            // callback.apply(list, superpositions... Superposition)
-            // => list.length()
-            List.prototype.prepend = function() {
-                var list = this;
-                
-                var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
-                
-                var parsed = parseSuperpositions(this, arguments);
-                
-                var first = list.first();
-                
-                list.__native.prepend.apply(list.__native, parsed.native);
-                
-                var series = [];
-                
-                if (first) {
-                    series.push(function(next) { first.trigger('prepend', parsed.typing, next); });
-                    series.push(function(next) { first.super().trigger('prepend', [first, parsed.typing], next); });
-                    series.push(function(next) { first.super().trigger('add', [first, parsed.typing], next); });
-                }
-                
-                series.push(function(next) { list.trigger('prepend', parsed.typing, next); });
-                series.push(function(next) { list.trigger('add', parsed.typing, next); });
-                
-                async.series(series, function() {
-                    if (callback) callback.apply(list, parsed.typing);
+                series.push(function(next) {
+                    async.eachSeries(superpositions, function(superposition, next) {
+                        list.__native.add(comparator, superposition.__native, function() {
+                            superposition.in(list).trigger('add', [], function() {
+                                superposition.trigger('add', [superposition.in(list)], function() {
+                                    next();
+                                });
+                            });
+                        });
+                    }, next);
                 });
                 
-                return list.length();
+                series.push(function(next) {
+                    list.trigger('add', superpositions, next);
+                });
+                
+                async.series(series, function() {
+                    if (callback) callback.call(list, superpositions);
+                });
             };
             
-            // (handler.call(~ { native lists.Superposition, super Superposition, position Position }, superposition Superposition, position Position) Function⎨, options Object⎬) ~ adapter
+            // (handler.call(~ { native lists.Superposition, super Superposition, position Position }, superposition Superposition, position Position) Function<, options Object>) ~ adapter
             List.prototype.each = function(handler, options) {
                 var list = this;
                 
@@ -1506,50 +1470,13 @@
                 
             };
             
-            // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function)
-            // position 'sort' ()
-            // list 'sort' ()
-            List.prototype.sort = function(callback) {
-                var list = this;
-                
-                if (!list.comparator) throw new Error('Wrong comparator');
-                
-                var comparator = wrapComporator(list);
-                
-                list.__native.sort(comparator, function() {
-                    
-                    list.trigger('sort', [], function() {
-                        if (callback) callback();
-                    });
-                    
-                });
-            };
-            
-            // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
-            // list 'add' (superpositions... Superposition)
-            // callback.apply(list, superpositions... Superposition)
-            List.prototype.add = function() {
-                var list = this;
-                
-                if (!list.comparator) throw new Error('Wrong comparator');
-                
-                var comparator = wrapComporator(list);
-                
-                var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
-                
-                var parsed = parseSuperpositions(this, arguments);
-                
-                var series = [];
-                
-                async.eachSeries(parsed.typing, function(sup, next) {
-                    list.__native.add(comparator, sup.__native, function() {
-                        next();
-                    });
-                }, function() {
-                    list.trigger('add', [parsed.typing], function() {
-                        if (callback) callback.apply(list);
-                    });
-                });
+            // ()
+            List.prototype.toArray = function() {
+                var array = [];
+                this.each(function(superposition) {
+                    array.push(superposition);
+                }, { sync: true });
+                return array;
             };
             
             List.prototype.first = function() {
@@ -1581,7 +1508,7 @@
                 if (!this.defaults) this.defaults = {};
             };
             
-            // (⎨ options: { defaults: true, clone: true } ⎬)
+            // (< options: { defaults: true, clone: true } >)
             var __get = function(data, __data, options) {
                 
                 var options = lodash.defaults(
@@ -1606,7 +1533,7 @@
                 return result;
             };
             
-            // (⎨ options ~ adapter⎨, callback Function ⎬⎬)
+            // (< options ~ adapter<, callback Function >>)
             // data 'get' (data)
             // callback (data)
             Data.prototype.get = function(options, callback) {
@@ -1621,7 +1548,7 @@
                 return data
             };
             
-            // (source Object⎨, callback(data, before) Function⎬)
+            // (source Object<, callback(data, before) Function>)
             // data 'set' (data, before)
             // callback (data, before)
             Data.prototype.set = function(source, callback) {
@@ -1636,7 +1563,7 @@
                 });
             };
             
-            // (⎨callback(data, before) Function⎬)
+            // (<callback(data, before) Function>)
             // data 'unset' (data, before)
             // data 'set' (data, before)
             // callback (data, before)
@@ -1654,7 +1581,7 @@
                 });
             };
             
-            // (source Object⎨, callback(data, before) Function⎬)
+            // (source Object<, callback(data, before) Function>)
             // data 'extend' (data, before)
             // data 'set' (data, before)
             // callback (data, before)
@@ -1672,7 +1599,7 @@
                 });
             };
             
-            // (source Object⎨, callback(data, before) Function⎬)
+            // (source Object<, callback(data, before) Function>)
             // data 'merge' (data, before)
             // data 'set' (data, before)
             // callback (data, before)
@@ -1690,7 +1617,7 @@
                 });
             };
             
-            // (property String⎨, options ~ adapter⎨, callback Function ⎬⎬)
+            // (property String<, options ~ adapter<, callback Function >>)
             // data 'has' (result Boolean, data)
             // data 'get' (data)
             // callback (result Boolean, data)
@@ -1710,7 +1637,7 @@
                 return result;
             };
             
-            // (⎨ options ~ adapter⎨, callback Function ⎬⎬⎬)
+            // (< options ~ adapter<, callback Function >>>)
             // data 'keys' (keys[String] Array, data)
             // data 'get' (data)
             // callback (keys[String] Array, data)
@@ -1730,7 +1657,7 @@
                 return result;
             };
             
-            // (⎨ options ~ adapter⎨, callback Function ⎬⎬⎬)
+            // (< options ~ adapter<, callback Function >>>)
             // data 'values' (keys Array, data)
             // data 'get' (data)
             // callback (keys Array, data)
@@ -1818,7 +1745,7 @@
             
             // if this.sync // start
             
-            // * // Documents.prototype.find; // (query Object, options Object, callback(error) Function)
+            Documents.prototype.find; // (query Object, options Object, callback(error) Function)
             
             // if this.sync // end
             
