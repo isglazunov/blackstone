@@ -1,6 +1,7 @@
 require('should');
 var blackstone = require('../blackstone.js');
 var _ = require('lodash');
+var async = require('async');
 var List = blackstone.lists.List;
 var Position = blackstone.lists.Position;
 var Super = blackstone.lists.Superposition;
@@ -298,6 +299,50 @@ describe('Blackstone Lists', function() {
         l.sort(function(prev, next) {
             this.next(prev.id < next.id);
         }, function() {
+            eql(l.first.super, s0);
+            eql(l.first.next.super, s1);
+            eql(l.first.next.next.super, s2);
+            eql(l.first.next.next.next.super, s3);
+            eql(l.last.super, s3);
+            eql(l.last.prev.super, s2);
+            eql(l.last.prev.prev.super, s1);
+            eql(l.last.prev.prev.prev.super, s0);
+            
+            done();
+        });
+    });
+    
+    it('list.add', function(done) {
+        var l = new List;
+        
+        var s0 = new Super;
+        var s1 = new Super;
+        var s2 = new Super;
+        var s3 = new Super;
+        
+        var comparator = function(prev, next) {
+            this.next(prev.id < next.id);
+        };
+        
+        var series = [];
+        
+        series.push(function(next) {
+            l.add(comparator, s3, function(sup, mov) { next(); });
+        });
+        
+        series.push(function(next) {
+            l.add(comparator, s0, function(sup, mov) { next(); });
+        });
+        
+        series.push(function(next) {
+            l.add(comparator, s2, function(sup, mov) { next(); });
+        });
+        
+        series.push(function(next) {
+            l.add(comparator, s1, function(sup, mov) { next(); });
+        });
+        
+        async.series(series, function() {
             eql(l.first.super, s0);
             eql(l.first.next.super, s1);
             eql(l.first.next.next.super, s2);

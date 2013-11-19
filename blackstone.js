@@ -258,6 +258,21 @@
                     } else result();
                 };
                 
+                // (comparator ~ Function, superposition Superposition, callback(position Position, superposition Superposition, moved Boolean) Function)
+                List.prototype.add = function(comparator, superposition, callback) {
+                    var list = this;
+                    
+                    if (superposition.in(list).exists) {
+                        superposition.in(list).remove();
+                    }
+                    
+                    list.append(superposition);
+                    
+                    superposition.in(list).__sort(comparator, function(moved) {
+                        callback(superposition, moved);
+                    });
+                };
+                
                 // Safe // end
                 
                 return List;
@@ -1003,7 +1018,7 @@
         blackstone.Typing = (function(typing, lists) {
             
             // (list List, superpositions[Superposition] Array)
-            // => { native: [typing.Position], typing: [Position] }
+            // => { native: [typing.Superposition], typing: [Superposition] }
             var parse = (function(Item) {
                 return function(list, arguments) {
                     var result = {
@@ -1022,6 +1037,13 @@
                     return result;
                 };
             })(typing.Item);
+            
+            // (list List)
+            var wrapComporator = function(list) {
+                return function(source, target) {
+                    list.comparator.call(this, source.value, target.value);
+                };
+            };
             
             var Typing = {};
             
@@ -1397,7 +1419,7 @@
                 // ~ superposition 'add' (position Position, superpositions[Superposition] Array)
                 // list 'append' (superpositions... Superposition)
                 // list 'add' (superpositions... Superposition)
-                // callbac.apply(list, superpositions... Superposition)
+                // callback.apply(list, superpositions... Superposition)
                 // => list.length()
                 List.prototype.append = function() {
                     var list = this;
@@ -1434,7 +1456,7 @@
                 // ~ superposition 'add' (position Position, superpositions[Superposition] Array)
                 // list 'prepend' (superpositions... Superposition)
                 // list 'add' (superpositions... Superposition)
-                // callbac.apply(list, superpositions... Superposition)
+                // callback.apply(list, superpositions... Superposition)
                 // => list.length()
                 List.prototype.prepend = function() {
                     var list = this;
@@ -1495,15 +1517,41 @@
                     
                     if (!list.comparator) throw new Error('Wrong comparator');
                     
-                    list.__native.sort(function(source, target) {
-                        list.comparator.call(this, source.value, target.value);
-                        
-                    }, function() {
+                    var comparator = wrapComporator(list);
+                    
+                    list.__native.sort(comparator, function() {
                         
                         list.trigger('sort', [], function() {
                             if (callback) callback();
                         });
                         
+                    });
+                };
+                
+                // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
+                // ~ position 'add' (superpositions... Superposition)
+                // ~ superposition 'add' (position Position, superpositions[Superposition] Array)
+                // list 'add' (superpositions... Superposition)
+                // callback.apply(list, superpositions... Superposition)
+                List.prototype.add = function() {
+                    var list = this;
+                    
+                    if (!list.comparator) throw new Error('Wrong comparator');
+                    
+                    var comparator = wrapComporator(list);
+                    
+                    var callback = lodash.isFunction(arguments[arguments.length - 1])? arguments[arguments.length - 1] : undefined;
+                    
+                    var parsed = parse(this, arguments);
+                    
+                    var series = [];
+                    
+                    async.eachSeries(parsed.native, function(sup, next) {
+                        list.__native.add(comparator, sup, function() {
+                            next();
+                        });
+                    }, function() {
+                        if (callback) callback.apply(list);
                     });
                 };
                 
