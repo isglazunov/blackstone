@@ -811,10 +811,10 @@
                     
                     this.prototype = {};
                     
-                    // .call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                    // .call(item Item, attr, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                     this.constructor = undefined;
                     
-                    // .call(item Item, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                    // .call(item Item, attr, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                     this.inheritor = undefined;
                     
                     // .call(prototype Object, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
@@ -859,6 +859,7 @@
                 
                 // (attr Array⎨, callback.call(item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } }) Function⎬)
                 // .constructor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                // .inheritor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // 'new' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // => item Item
                 Type.prototype.new = function(attr, callback) {
@@ -935,7 +936,7 @@
                     for (var p in prototypes.all) {
                         if (prototypes.all[p] instanceof Type) {
                             if (lodash.isFunction(prototypes.all[p].inheritor)) {
-                                prototypes.all[p].inheritor.call(item, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes);
+                                prototypes.all[p].inheritor.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes);
                             }
                         }
                     }
