@@ -1,10 +1,10 @@
 require('should');
 var blackstone = require('../../blackstone.js');
 var _ = require('lodash');
-var List = blackstone.Typing.List;
-var Super = blackstone.Typing.Superposition;
+var List = blackstone.List;
+var Super = blackstone.Superposition;
 
-describe('Blackstone Lists', function() {
+describe('Blackstone Types Lists', function() {
     
     var eql = function(first, second) {
         first.__native.id.should.be.eql(second.__native.id);

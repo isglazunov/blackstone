@@ -1,9 +1,9 @@
 require('should');
 var blackstone = require('../../blackstone.js');
 var lodash = require('lodash');
-var Data = blackstone.Typing.Data;
+var Data = blackstone.Data;
 
-describe('Blackstone Typing Data', function() {
+describe('Blackstone Types Data', function() {
     
     var data
     it('Data', function(){
