@@ -258,7 +258,7 @@
                     } else result();
                 };
                 
-                // (comparator ~ Function, superposition Superposition, callback(position Position, superposition Superposition, moved Boolean) Function)
+                // (comparator ~ Function, superposition Superposition, callback(superposition Superposition, position Position, moved Boolean) Function)
                 List.prototype.add = function(comparator, superposition, callback) {
                     var list = this;
                     
@@ -269,7 +269,7 @@
                     list.append(superposition);
                     
                     superposition.in(list).__sort(comparator, function(moved) {
-                        callback(superposition, moved);
+                        callback(superposition, superposition.in(list), moved);
                     });
                 };
                 
@@ -1529,8 +1529,6 @@
                 };
                 
                 // (superpositions... Superposition⎨, callback(superpositions... Superposition) Function⎬)
-                // ~ position 'add' (superpositions... Superposition)
-                // ~ superposition 'add' (position Position, superpositions[Superposition] Array)
                 // list 'add' (superpositions... Superposition)
                 // callback.apply(list, superpositions... Superposition)
                 List.prototype.add = function() {
@@ -1546,12 +1544,14 @@
                     
                     var series = [];
                     
-                    async.eachSeries(parsed.native, function(sup, next) {
-                        list.__native.add(comparator, sup, function() {
+                    async.eachSeries(parsed.typing, function(sup, next) {
+                        list.__native.add(comparator, sup.__native, function() {
                             next();
                         });
                     }, function() {
-                        if (callback) callback.apply(list);
+                        list.trigger('add', [parsed.typing], function() {
+                            if (callback) callback.apply(list);
+                        });
                     });
                 };
                 
