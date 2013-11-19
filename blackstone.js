@@ -156,7 +156,7 @@
                     return this.length;
                 };
                 
-                // (handler.call({ position, super, list, ~ next }, super Superposition, position Position, list List) Function<, options { sync Boolean, reverse Boolean, callback() Function }>)
+                // (handler.call({ position, super, ~ next }, super Superposition, position Position) Function<, options { sync Boolean, reverse Boolean, callback() Function }>)
                 List.prototype.each = function(handler, _options) {
                     
                     var list = this;
@@ -214,9 +214,8 @@
                         var iteration = function() {
                             handler.call({
                                 position: position,
-                                super: position.super,
-                                list: list
-                            }, position.super, position, list);
+                                super: position.super
+                            }, position.super, position);
                             
                             if (future) next();
                             else callback();
