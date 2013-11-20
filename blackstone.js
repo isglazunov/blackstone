@@ -1,4 +1,4 @@
-// blackstone:develop
+// blackstone@develop
 // https://github.com/isglazunov/blackstone/tree/develop
 
 // Help
