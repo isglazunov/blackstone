@@ -1500,12 +1500,10 @@
             
             Data.defaults = {};
             
-            Data.constructor = Data.inheritor = function() {
-                if (!this.__data) this.__data = {};
-                
-                // The values will be supplanted when receiving data automatically.
-                if (!this.defaults) this.defaults = {};
-            };
+            Data.constructor = Data.inheritor = function(attr) { return (function(data) {
+                this.__data = data;
+                this.defaults = {};
+            }).call(this, attr && attr[0]? attr[0] : {}); };
             
             // (< options: { defaults: true, clone: true } >)
             var __get = function(data, __data, options) {
@@ -1533,8 +1531,9 @@
             };
             
             // (< options ~ adapter<, callback Function >>)
-            // data 'get' (data)
-            // callback (data)
+            // 'get' (data Object)
+            // callback (data Object)
+            // => data Object
             Data.prototype.get = function(options, callback) {
                 var self = this;
                 
@@ -1547,133 +1546,50 @@
                 return data
             };
             
-            // (source Object<, callback(data, before) Function>)
-            // data 'set' (data, before)
-            // callback (data, before)
+            // (source Object<, callback(data Object, oldData Object) Function>)
+            // 'set' (data Object, oldData Object)
+            // 'get' (data Object)
+            // callback (data Object, oldData Object)
+            // => data Object
             Data.prototype.set = function(source, callback) {
                 var self = this;
                 
-                var before = __get(self, self.__data, { defaults: false, clone: true });
+                var old = __get(self, self.__data, { defaults: false, clone: true });
+                
                 self.__data = lodash.cloneDeep(source);
                 var data = __get(self, self.__data);
                 
-                self.trigger('set', [data, before], function() {
-                    if (callback) callback(data, before);
+                self.trigger('set', [data, old], function() {
+                    self.trigger('get', [data], function() {
+                        if (callback) callback(data, old);
+                    });
                 });
+                
+                return data;
             };
             
-            // (<callback(data, before) Function>)
-            // data 'unset' (data, before)
-            // data 'set' (data, before)
-            // callback (data, before)
+            // (<callback(data Object, oldData Object) Function>)
+            // 'unset' (data Object, oldData Object)
+            // 'set' (data Object, oldData Object)
+            // 'get' (data Object)
+            // callback (data Object, oldData Object)
+            // => data Object
             Data.prototype.unset = function(callback) {
                 var self = this;
                 
-                var before = __get(self, self.__data, { defaults: false, clone: true });
+                var old = __get(self, self.__data, { defaults: false, clone: true });
                 self.__data = {};
                 var data = __get(self, self.__data);
                 
-                self.trigger('unset', [data, before], function() {
-                    self.trigger('set', [data, before], function() {
-                        if (callback) callback(data, before);
-                    });
-                });
-            };
-            
-            // (source Object<, callback(data, before) Function>)
-            // data 'extend' (data, before)
-            // data 'set' (data, before)
-            // callback (data, before)
-            Data.prototype.extend = function(source, callback) {
-                var self = this;
-                
-                var before = __get(self, self.__data, { defaults: false, clone: true });
-                lodash.extend(self.__data, source);
-                var data = __get(self, self.__data);
-                
-                self.trigger('extend', [data, before], function() {
-                    self.trigger('set', [data, before], function() {
-                        if (callback) callback(data, before);
-                    });
-                });
-            };
-            
-            // (source Object<, callback(data, before) Function>)
-            // data 'merge' (data, before)
-            // data 'set' (data, before)
-            // callback (data, before)
-            Data.prototype.merge = function(source, callback) {
-                var self = this;
-                
-                var before = __get(self, self.__data, { defaults: false, clone: true });
-                lodash.extend(self.__data, source);
-                var data = __get(self, self.__data);
-                
-                self.trigger('merge', [data, before], function() {
-                    self.trigger('set', [data, before], function() {
-                        if (callback) callback(data, before);
-                    });
-                });
-            };
-            
-            // (property String<, options ~ adapter<, callback Function >>)
-            // data 'has' (result Boolean, data)
-            // data 'get' (data)
-            // callback (result Boolean, data)
-            // => Boolean
-            Data.prototype.has = function(property, options, callback) {
-                var self = this;
-                
-                var data = __get(self, self.__data, options);
-                var result = lodash.has(data, property);
-                
-                self.trigger('has', [result, data], function() {
-                    self.trigger('get', [data], function() {
-                        if (callback) callback(result, data);
+                self.trigger('unset', [data, old], function() {
+                    self.trigger('set', [data, old], function() {
+                        self.trigger('get', [data], function() {
+                            if (callback) callback(data, old);
+                        });
                     });
                 });
                 
-                return result;
-            };
-            
-            // (< options ~ adapter<, callback Function >>>)
-            // data 'keys' (keys[String] Array, data)
-            // data 'get' (data)
-            // callback (keys[String] Array, data)
-            // => [String] Array
-            Data.prototype.keys = function(options, callback) {
-                var self = this;
-                
-                var data = __get(self, self.__data, options);
-                var result = lodash.keys(data);
-                
-                self.trigger('keys', [result, data], function() {
-                    self.trigger('get', [data], function() {
-                        if (callback) callback(result, data);
-                    });
-                });
-                
-                return result;
-            };
-            
-            // (< options ~ adapter<, callback Function >>>)
-            // data 'values' (keys Array, data)
-            // data 'get' (data)
-            // callback (keys Array, data)
-            // => [String] Array
-            Data.prototype.values = function(options, callback) {
-                var self = this;
-                
-                var data = __get(self, self.__data, options);
-                var result = lodash.values(data);
-                
-                self.trigger('keys', [result, data], function() {
-                    self.trigger('get', [data], function() {
-                        if (callback) callback(result, data);
-                    });
-                });
-                
-                return result;
+                return data;
             };
             
             return Data;
