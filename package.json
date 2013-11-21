@@ -1,6 +1,6 @@
 {
     "name": "blackstone",
-    "version": "develop",
+    "version": "0.0.2",
     "dependencies": {
         "lodash": "~2.2.1",
         "async": "~0.2.9"
