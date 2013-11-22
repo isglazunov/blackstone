@@ -1,5 +1,5 @@
-// blackstone@0.0.2
-// https://github.com/isglazunov/blackstone/tree/develop
+// blackstone@0.0.3
+// https://github.com/isglazunov/blackstone
 
 // Help
 
@@ -10,7 +10,7 @@
     
     // Blackstone Version
     // Version for internal use
-    var __version = '0.0.2';
+    var __version = '0.0.3';
     
     // new (lodash, async)
     // Main constructor
