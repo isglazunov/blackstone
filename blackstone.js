@@ -171,68 +171,68 @@
                     
                     var callback = options.callback? options.callback : function() {};
                     
-                    var position = undefined;
-                    var future = undefined;
-                    var move = undefined;
-                    
                     if (!options.reverse) {
-                        position = list.first;
-                        if (position) future = position.next;
-                        
-                        move = function() {
-                            position = position.next;
-                            future = position.next;
-                        };
-                    } else {
-                        position = list.last;
-                        if (position) future = position.prev;
-                        
-                        move = function() {
-                            position = position.prev;
-                            future = position.prev;
-                        };
-                    }
-                    
-                    var next = function() {
-                        if (future) {
-                            move();
-                            iteration();
+                        if (list.first) {
+                            if (!options.sync) {
+                                list.first.travel(function(position) {
+                                    var travel = this;
+                                    
+                                    var nexted = false;
+                                    handler.call({ position: position, super: position.super, next: function() {
+                                        if (!nexted) {
+                                            nexted = true;
+                                            if (position.next) travel.next(position.next);
+                                            else callback();
+                                        }
+                                    } }, position.super, position);
+                                });
+                            } else {
+                                list.first.travel(function(position) {
+                                    var travel = this;
+                                    
+                                    handler.call({ position: position, super: position.super }, position.super, position);
+                                    
+                                    if (position.next) travel.next(position.next);
+                                    else callback();
+                                });
+                            }
                         } else callback();
-                    };
-                    
-                    if (!options.sync) {
-                        var iteration = function() {
-                            
-                            handler.call({
-                                position: position,
-                                super: position.super,
-                                list: list,
-                                next: lodash.once(next)
-                            }, position.super, position, list);
-                        };
                     } else {
-                        var iteration = function() {
-                            handler.call({
-                                position: position,
-                                super: position.super
-                            }, position.super, position);
-                            
-                            if (future) next();
-                            else callback();
-                        };
+                        if (list.last) {
+                            if (!options.sync) {
+                                list.last.travel(function(position) {
+                                    var travel = this;
+                                    
+                                    var nexted = false;
+                                    handler.call({ position: position, super: position.super, next: function() {
+                                        if (!nexted) {
+                                            nexted = true;
+                                            if (position.prev) travel.next(position.prev);
+                                            else callback();
+                                        }
+                                    } }, position.super, position);
+                                });
+                            } else {
+                                list.last.travel(function(position) {
+                                    var travel = this;
+                                    
+                                    handler.call({ position: position, super: position.super }, position.super, position);
+                                    
+                                    if (position.prev) travel.next(position.prev);
+                                    else callback();
+                                });
+                            }
+                        } else callback();
                     }
-                    
-                    if (list.length > 0) iteration();
-                    else callback();
                     
                 };
                 
-                // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function, callback Function<, handler Function>)
+                // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function<, callback Function<, handler Function>>)
                 List.prototype.sort = function(comparator, callback, handler) {
                     var list = this;
                     
                     var handle = handler? function() { handler.apply(handler, arguments); } : function() {}
-                    var result = function() { callback(); };
+                    var callback = callback? callback : function() {}
                     
                     if (list.first) {
                         
@@ -247,14 +247,14 @@
                                     handle(pos, moved);
                                     
                                     if (next) travel.next(next);
-                                    else result();
+                                    else callback();
                                 });
                                 
                             });
                             
-                        } else result();
+                        } else callback();
                         
-                    } else result();
+                    } else callback();
                 };
                 
                 // (comparator ~ Function, superposition Superposition, callback(superposition Superposition, position Position, moved Boolean) Function)
