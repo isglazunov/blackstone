@@ -458,7 +458,7 @@
                     return this.list.length;
                 };
                     
-                // (handler( ~ { next(direction Superposition/Position) Function }, position Position) Function)
+                // (handler( ~ { next(direction Position) Function }, position Position) Function)
                 Position.prototype.travel = function(handler) {
                     var position = this;
                     
@@ -1137,7 +1137,7 @@
                 });
             };
             
-            // (handler( ~ { next(direction Superposition/Position) Function }, position Position) Function)
+            // (handler( ~ { next(direction Position) Function }, position Position) Function)
             Position.prototype.travel = function(handler) {
                 var position = this;
                 
@@ -1148,11 +1148,7 @@
                     handler.call({ next: function(_direction) {
                         
                         if (_direction instanceof Item) {
-                            if (_direction.of(blackstone.Superposition)) {
-                                var direction = _direction.in(position.list());
-                            } else if (_direction.of(blackstone.Position)) {
-                                var direction = _direction.super().in(position.list());
-                            }
+                            var direction = _direction.super().in(position.list());
                         } else throw new Error('direction is not a item');
                         
                         travel.next(direction.__native);
