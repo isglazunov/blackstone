@@ -280,12 +280,8 @@
             
             lists.Position = (function() {
                 
-                var id = 0;
-                
                 // new (list List, superposition Superposition)
                 var Position = function(list, superposition) {
-                    this.id = id++;
-                    
                     this.exists = false;
                     
                     this.next = undefined;
@@ -354,7 +350,7 @@
                         callback(parent, edge, moved);
                     };
                     
-                    if (target.list.first.id == target.id) {
+                    if (target.list.first == target) {
                         edge = true;
                         result();
                     } else {
@@ -483,11 +479,7 @@
             
             lists.Superposition = (function(List, Position) {
                 
-                var id = 0;
-                
                 var Superposition = function() {
-                    this.id = id++;
-                    
                     this.lists = {};
                     this.value = undefined;
                 };
@@ -545,8 +537,6 @@
             
             events.Superhandler = (function(Handler) {
                 
-                var id = 0;
-                
                 var defaults = {
                     sync: false,
                     this: false
@@ -554,9 +544,6 @@
                 
                 // new ()
                 var Superhandler = function() {
-                    
-                    this.id = id++;
-                    
                     var superposition = new lists.Superposition();
                     superposition.value = this;
                     
@@ -737,13 +724,13 @@
                     for (var a in arguments) {
                         var found = false;
                         
-                        if (this.__type.id == arguments[a].id) { // this type
+                        if (this.__type == arguments[a]) { // this type
                             found = true;
                             
                         } else { // this type types
                             for (var p in prototypes.all) {
                                 if (prototypes.all[p] instanceof typing.Type) {
-                                    if (prototypes.all[p].id == arguments[a].id) {
+                                    if (prototypes.all[p] == arguments[a]) {
                                         found = true;
                                         break;
                                     }
@@ -1069,7 +1056,7 @@
                     lodash.each(superpositions, function(superposition) {
                         native.push(superposition.__native);
                         
-                        if (superposition.__native.id == position.super().__native.id) throw new Error('closed circuit is not supported');
+                        if (superposition.__native == position.super().__native) throw new Error('closed circuit is not supported');
                     });
                     next();
                 });
@@ -1119,7 +1106,7 @@
                     lodash.each(superpositions, function(superposition) {
                         native.push(superposition.__native);
                         
-                        if (superposition.__native.id == position.super().__native.id) throw new Error('closed circuit is not supported');
+                        if (superposition.__native == position.super().__native) throw new Error('closed circuit is not supported');
                     });
                     next();
                 });

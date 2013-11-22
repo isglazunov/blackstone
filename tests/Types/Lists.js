@@ -8,7 +8,7 @@ var Super = blackstone.Superposition;
 describe('Blackstone Types Lists', function() {
     
     var sEql = function(first, second) {
-        first.__native.id.should.be.eql(second.__native.id);
+        (first == second).should.be.true;
     };
     
     var lEql = function(l, sup) {
@@ -462,13 +462,17 @@ describe('Blackstone Types Lists', function() {
         var l = List.new();
         
         l.comparator = function(prev, next) {
-            this.next(prev.__native.id < next.__native.id);
+            this.next(prev.id < next.id);
         };
         
         var s0 = Super.new();
+        s0.id = 0;
         var s1 = Super.new();
+        s1.id = 1;
         var s2 = Super.new();
+        s2.id = 2;
         var s3 = Super.new();
+        s3.id = 3;
         
         var events = [];
         
@@ -536,13 +540,17 @@ describe('Blackstone Types Lists', function() {
         var l = List.new();
         
         l.comparator = function(prev, next) {
-            this.next(prev.__native.id < next.__native.id);
+            this.next(prev.id < next.id);
         };
         
         var s0 = Super.new();
+        s0.id = 0;
         var s1 = Super.new();
+        s1.id = 1;
         var s2 = Super.new();
+        s2.id = 2;
         var s3 = Super.new();
+        s3.id = 3;
         
         var events = [];
         

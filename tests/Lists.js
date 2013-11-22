@@ -9,7 +9,7 @@ var Super = blackstone.lists.Superposition;
 describe('Blackstone Lists', function() {
     
     var sEql = function(first, second) {
-        first.id.should.be.eql(second.id);
+        first.should.equal(second);
     };
     
     var lEql = function(l, sup) {
@@ -215,9 +215,13 @@ describe('Blackstone Lists', function() {
         var l = new List;
         
         var s0 = new Super;
+        s0.id = 0;
         var s1 = new Super;
+        s1.id = 1;
         var s2 = new Super;
+        s2.id = 2;
         var s3 = new Super;
+        s3.id = 3;
         
         l.append(s3, s0, s2, s1);
         
@@ -234,9 +238,13 @@ describe('Blackstone Lists', function() {
         var l = new List;
         
         var s0 = new Super;
+        s0.id = 0;
         var s1 = new Super;
+        s1.id = 1;
         var s2 = new Super;
+        s2.id = 2;
         var s3 = new Super;
+        s3.id = 3;
         
         var comparator = function(prev, next) {
             this.next(prev.id < next.id);
