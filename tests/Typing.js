@@ -182,4 +182,32 @@ describe('Blackstone Typing', function() {
         
     });
     
+    it('as', function() {
+        
+        var A = Type.inherit();
+        
+        A.constructor = function() {
+            this._a = true;
+        };
+        
+        var a = A.new();
+        
+        var B = Type.inherit();
+        
+        B.inheritor = function() {
+            this._b = true;
+        };
+        
+        B.prototype.a = function() {
+            return this._a;
+        };
+        B.prototype.b = function() {
+            return this._b;
+        };
+        
+        a.as(B).a().should.be.true;
+        a.as(B).b().should.be.true;
+        
+    });
+    
 });
