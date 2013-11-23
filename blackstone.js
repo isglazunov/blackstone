@@ -1004,6 +1004,10 @@
         
         // Types // start
         
+        // Fast alias...
+        blackstone.Type = blackstone.typing.Type;
+        blackstone.Item = blackstone.typing.Item;
+        
         // 'remove' ()
         // 'add' ()
         blackstone.Position = (function(Type, Item) {
