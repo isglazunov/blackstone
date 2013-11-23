@@ -858,14 +858,15 @@
                     
                 };
                 
-                // (attr Array<, callback.call(item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } }) Function>)
-                // .constructor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                // (attr... Array)
+                // .constructor.apply(item Item, attr... Array)
                 // .inheritor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // 'new' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // => item Item
-                Type.prototype.new = function(attr, callback) {
-                    
+                Type.prototype.new = function() {
                     var type = this;
+                    
+                    var attr = arguments;
                     
                     var prototypes = type.__prototypes();
                     
@@ -934,6 +935,10 @@
                     // prototype to superposition
                     superposition.value = item;
                     
+                    if (lodash.isFunction(type.inheritor)) {
+                        type.inheritor.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes);
+                    }
+                    
                     for (var p in prototypes.all) {
                         if (prototypes.all[p] instanceof Type) {
                             if (lodash.isFunction(prototypes.all[p].inheritor)) {
@@ -942,15 +947,12 @@
                         }
                     }
                     
-                    if (lodash.isFunction(this.constructor)) this.constructor.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes);
+                    if (lodash.isFunction(this.constructor)) this.constructor.apply(item, attr);
                     
                     // events
                     async.nextTick(function() {
-                        type.trigger('new', [attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes], callback);
+                        type.trigger('new', [attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes]);
                     });
-                    
-                    // callback
-                    if (callback) callback.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, item.__type, prototypes);
                     
                     return item;
                 };
@@ -1008,8 +1010,11 @@
             
             var Position = Type.inherit();
             
+            // Not for custom using without Superposition.in.
             // (native typing.Position)
-            Position.constructor = function(native) {
+            Position.inheritor = function(attr) {
+                var native = attr[0];
+                
                 this.__native = native;
                 this.__native.value = this;
             };
@@ -1194,9 +1199,7 @@
             var Superposition = Type.inherit();
             
             // ()
-            Superposition.constructor = function() {
-                
-                // Mutual binding
+            Superposition.inheritor = function() {
                 this.__native = new lists.Superposition;
                 this.__native.value = this;
             };
@@ -1233,7 +1236,7 @@
             };
             
             // ()
-            List.constructor = List.inheritor = function() {
+            List.inheritor = function() {
                 this.__native = new lists.List;
                 this.__native.value = this;
                 
@@ -1483,10 +1486,13 @@
             
             Data.defaults = {};
             
-            Data.constructor = Data.inheritor = function(attr) { return (function(data) {
+            Data.constructor = function(data) {
                 this.__data = data;
+            };
+            
+            Data.inheritor = function() {
                 this.defaults = {};
-            }).call(this, attr && attr[0]? attr[0] : {}); };
+            };
             
             // (< options: { defaults: true, clone: true } >)
             var __get = function(data, __data, options) {
