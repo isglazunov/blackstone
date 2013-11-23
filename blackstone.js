@@ -1027,7 +1027,9 @@
             Position.prototype.remove = function(callback) {
                 var position = this;
                 
-                if (!position.exists()) callback.call(position);
+                if (!position.exists()) {
+                    return callback? callback.call(position) : undefined
+                }
                 
                 position.__native.remove();
                 
