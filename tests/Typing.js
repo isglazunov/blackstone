@@ -196,6 +196,7 @@ describe('Blackstone Typing', function() {
         
         B.inheritor = function() {
             this._b = true;
+            this.as(B).c = true;
         };
         
         B.prototype.a = function() {
@@ -207,6 +208,7 @@ describe('Blackstone Typing', function() {
         
         a.as(B).a().should.be.true;
         a.as(B).b().should.be.true;
+        a.as(B).c.should.be.true;
         
     });
     

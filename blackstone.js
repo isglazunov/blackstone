@@ -1,4 +1,4 @@
-// blackstone@0.0.8
+// blackstone@0.0.9
 // https://github.com/isglazunov/blackstone
 
 // Help
@@ -10,7 +10,7 @@
     
     // Blackstone Version
     // Version for internal use
-    var __version = '0.0.8';
+    var __version = '0.0.9';
     
     // new (lodash, async)
     // Main constructor
@@ -761,12 +761,15 @@
                 // (type Type)
                 // => item Item
                 Item.prototype.as = function(type) {
+                    var item = this;
                     
-                    if (!this.__as[type.id]) {
-                        this.__as[type.id] = type.as(this);
+                    if (!item.__as[type.id]) {
+                        type.as(item, function(exports) {
+                            item.__as[type.id] = exports;
+                        });
                     }
                     
-                    return this.__as[type.id];
+                    return item.__as[type.id];
                     
                 };
                 
@@ -965,10 +968,12 @@
                     return item;
                 };
                 
-                // (item Item)
+                // (item Item, precallback(exports) Function)
+                // .constructor.apply(item Item, attr... Array)
+                // .inheritor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // 'as' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
-                // => item Item with wrapped functions
-                Type.prototype.as = function(item) {
+                // => exports Item with wrapped functions
+                Type.prototype.as = function(item, precallback) {
                     var type = this;
                     
                     var __prototypes = {};
@@ -998,6 +1003,8 @@
                     
                     // constructor
                     var exports = new Prototype;
+                    
+                    if (precallback) precallback(exports);
                     
                     var attr = [];
                     
