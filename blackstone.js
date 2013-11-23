@@ -1,4 +1,4 @@
-// blackstone@0.0.7
+// blackstone@0.0.8
 // https://github.com/isglazunov/blackstone
 
 // Help
@@ -10,7 +10,7 @@
     
     // Blackstone Version
     // Version for internal use
-    var __version = '0.0.7';
+    var __version = '0.0.8';
     
     // new (lodash, async)
     // Main constructor
@@ -849,66 +849,6 @@
                     this.prototypes = new Prototypes
                 };
                 
-                // (item Item)
-                // 'as' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
-                // => item Item with wrapped functions
-                Type.prototype.as = function(item) {
-                    var type = this;
-                    
-                    var __prototypes = {};
-                    var __prototype = {};
-                    
-                    // prototypes
-                    var prototypes = __prototyping(__prototype, __prototypes, type);
-                    
-                    var Prototype = function() {};
-                    
-                    Prototype.prototype = new Exports;
-                    
-                    lodash.extend(Prototype.prototype, __prototypes);
-                    lodash.extend(Prototype.prototype, __prototype);
-                    
-                    if (lodash.isFunction(type.creator)) {
-                        type.creator.call(Prototype.prototype, Prototype.prototype, __prototype, __prototypes, type, prototypes);
-                    }
-                    
-                    for (var p in prototypes.all) {
-                        if (prototypes.all[p] instanceof Type) {
-                            if (lodash.isFunction(prototypes.all[p].creator)) {
-                                prototypes.all[p].creator.call(Prototype.prototype, Prototype.prototype, __prototype, __prototypes, type, prototypes);
-                            }
-                        }
-                    }
-                    
-                    // constructor
-                    var exports = new Prototype;
-                    
-                    var attr = [];
-                    
-                    for (var p in Prototype.prototype) {
-                        if (lodash.isFunction(Prototype.prototype[p])) {
-                            Prototype.prototype[p] = (function(method) {
-                                return function() { return method.apply(item, arguments); };
-                            })(Prototype.prototype[p]);
-                        }
-                    }
-                    
-                    if (lodash.isFunction(type.inheritor)) {
-                        type.inheritor.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, type, prototypes);
-                    }
-                    
-                    for (var p in prototypes.all) {
-                        if (prototypes.all[p] instanceof Type) {
-                            if (lodash.isFunction(prototypes.all[p].inheritor)) {
-                                prototypes.all[p].inheritor.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, type, prototypes);
-                            }
-                        }
-                    }
-                    
-                    return exports;
-                    
-                };
-                
                 // (results { all: [Type] }, now Item/Type, notThis = false)
                 var __prototypes = function(results, now, notThis) {
                     
@@ -1023,6 +963,71 @@
                     });
                     
                     return item;
+                };
+                
+                // (item Item)
+                // 'as' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
+                // => item Item with wrapped functions
+                Type.prototype.as = function(item) {
+                    var type = this;
+                    
+                    var __prototypes = {};
+                    var __prototype = {};
+                    
+                    // prototypes
+                    var prototypes = __prototyping(__prototype, __prototypes, type);
+                    
+                    var Prototype = function() {};
+                    
+                    Prototype.prototype = new Exports;
+                    
+                    lodash.extend(Prototype.prototype, __prototypes);
+                    lodash.extend(Prototype.prototype, __prototype);
+                    
+                    if (lodash.isFunction(type.creator)) {
+                        type.creator.call(Prototype.prototype, Prototype.prototype, __prototype, __prototypes, type, prototypes);
+                    }
+                    
+                    for (var p in prototypes.all) {
+                        if (prototypes.all[p] instanceof Type) {
+                            if (lodash.isFunction(prototypes.all[p].creator)) {
+                                prototypes.all[p].creator.call(Prototype.prototype, Prototype.prototype, __prototype, __prototypes, type, prototypes);
+                            }
+                        }
+                    }
+                    
+                    // constructor
+                    var exports = new Prototype;
+                    
+                    var attr = [];
+                    
+                    for (var p in Prototype.prototype) {
+                        if (lodash.isFunction(Prototype.prototype[p])) {
+                            Prototype.prototype[p] = (function(method) {
+                                return function() { return method.apply(item, arguments); };
+                            })(Prototype.prototype[p]);
+                        }
+                    }
+                    
+                    if (lodash.isFunction(type.inheritor)) {
+                        type.inheritor.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, type, prototypes);
+                    }
+                    
+                    for (var p in prototypes.all) {
+                        if (prototypes.all[p] instanceof Type) {
+                            if (lodash.isFunction(prototypes.all[p].inheritor)) {
+                                prototypes.all[p].inheritor.call(item, attr, item, Prototype.prototype, __prototype, __prototypes, type, prototypes);
+                            }
+                        }
+                    }
+                    
+                    // events
+                    async.nextTick(function() {
+                        type.trigger('as', [attr, item, Prototype.prototype, prototypes.prototype, prototypes.prototypes, type, prototypes.__prototypes]);
+                    });
+                    
+                    return exports;
+                    
                 };
                 
                 // ()
