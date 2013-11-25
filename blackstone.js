@@ -28,6 +28,107 @@
         // .version String
         blackstone.version = __version;
         
+        // Tools // start
+        
+        // (condition, handler, callback)
+        
+        // condition(next(Boolean) Function) Function
+        // handler.call({ next Function }) Function
+        // callback Function
+        
+        // condition Array
+        // handler.call({ next Function }, value, key) Function
+        // callback Function
+        
+        // condition Object
+        // handler.call({ next Function }, value, key) Function
+        // callback Function
+        
+        blackstone.cycle = function(condition, handler, _options) {
+                    
+            if (!lodash.isObject(_options)) var _options = {};
+            
+            var options = lodash.defaults(_options, {
+                sync: false,
+                reverse: false,
+                callback: undefined
+            });
+            
+            var callback = options.callback? options.callback : function() {};
+            
+            if (lodash.isFunction(condition)) {
+                
+                var handlerContext = {
+                    next: function() {
+                        iteration();
+                    }
+                };
+                
+                if (!options.sync) {
+                    var conditionContext = {
+                        next: function(response) {
+                            if (response) handler.call(handlerContext);
+                            else callback();
+                        }
+                    };
+                } else {
+                    var conditionContext = {
+                        next: function(response) {
+                            if (response) {
+                                handler();
+                                handlerContext.next();
+                            } else callback();
+                        }
+                    };
+                }
+                
+                var iteration = function() {
+                    condition.call(conditionContext);
+                };
+                
+                iteration();
+                
+            } else {
+                if(lodash.isArray(condition)) {
+                    
+                    if (!options.reverse) var key = 0;
+                    else var key = condition.length - 1;
+                    
+                    if (!options.reverse) {
+                        var conditionFunction = function() {
+                            key++;
+                            this.next(key < condition.length);
+                        };
+                    } else {
+                        var conditionFunction = function() {
+                            key--;
+                            this.next(key >= 0);
+                        };
+                    }
+                    
+                    blackstone.cycle(conditionFunction, function() {
+                        handler.call(this, condition[key], key);
+                    }, options);
+                    
+                } else if(lodash.isObject(condition)) {
+                    
+                    var keys = lodash.keys(condition);
+                    
+                    blackstone.cycle(keys, function(key, index) {
+                        handler.call(this, condition[key], key);
+                    }, options);
+                    
+                } else throw new Error('!condition');
+            }
+        };
+        
+        // (handler.call({ next(arguments...) Function }, arguments...) Function, args Array)
+        blackstone.travel = function(handler, args) {
+            handler.apply({ next: function() { blackstone.travel(handler, arguments); } }, args);
+        };
+        
+        // Tools // end
+        
         // lists
         blackstone.lists = (function() {
             
@@ -50,25 +151,6 @@
                 };
                 
                 // Unsafe // start
-                
-                // Linking with a list of positions // start
-                
-                // (position Position)
-                List.prototype.__setSingle = function(position) {
-                    this.first = this.last = position;
-                };
-                
-                // (position Position)
-                List.prototype.__setFirst = function(position) {
-                    this.first = position;
-                };
-                
-                // (position Position)
-                List.prototype.__setLast = function(position) {
-                    this.last = position;
-                };
-                
-                // Linking with a list of positions // end
                 
                 // Unlinking with a list of positions
                 // Attention! The position should be complete!
@@ -116,9 +198,9 @@
                                 
                                 if (this.last) {
                                     this.last.__addAfter(pos);
-                                    this.__setLast(pos);
+                                    this.last = pos;
                                 } else {
-                                    this.__setSingle(pos);
+                                    this.first = this.last = pos;
                                 }
                                 
                                 this.length++;
@@ -142,9 +224,9 @@
                                 
                                 if (this.first) {
                                     this.first.__addBefore(pos);
-                                    this.__setFirst(pos);
+                                    this.first = pos;
                                 } else {
-                                    this.__setSingle(pos);
+                                    this.first = this.last = pos;
                                 }
                                 
                                 this.length++;
