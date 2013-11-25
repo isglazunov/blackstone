@@ -718,7 +718,7 @@
                 
             })();
             
-            typing.Item = (function() {
+            typing.Item = (function(Exports) {
                 
                 // X // type.new
                 var Item = function() {};
@@ -764,7 +764,7 @@
                     var item = this;
                     
                     if (!item.__as[type.id]) {
-                        type.as(item, function(exports) {
+                        type.as(item, new Exports, function(exports) {
                             item.__as[type.id] = exports;
                         });
                     }
@@ -775,7 +775,7 @@
                 
                 return Item;
                 
-            })();
+            })(typing.Exports);
             
             typing.Prototypes = (function(typing) {
                 
@@ -973,7 +973,7 @@
                 // .inheritor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // 'as' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // => exports Item with wrapped functions
-                Type.prototype.as = function(item, precallback) {
+                Type.prototype.as = function(item, exports, precallback) {
                     var type = this;
                     
                     var __prototypes = {};
@@ -984,7 +984,7 @@
                     
                     var Prototype = function() {};
                     
-                    Prototype.prototype = new Exports;
+                    Prototype.prototype = exports;
                     
                     lodash.extend(Prototype.prototype, __prototypes);
                     lodash.extend(Prototype.prototype, __prototype);
