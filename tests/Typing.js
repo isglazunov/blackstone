@@ -190,7 +190,8 @@ describe('Blackstone Typing', function() {
             this._a = true;
         };
         
-        var a = A.new();
+        var a1 = A.new();
+        var a2 = A.new();
         
         var B = Type.inherit();
         
@@ -206,9 +207,15 @@ describe('Blackstone Typing', function() {
             return this._b;
         };
         
-        a.as(B).a().should.be.true;
-        a.as(B).b().should.be.true;
-        a.as(B).c.should.be.true;
+        a2.as(B).c = false;
+        
+        a1.as(B).a().should.be.true;
+        a1.as(B).b().should.be.true;
+        a1.as(B).c.should.be.true;
+        
+        a2.as(B).a().should.be.true;
+        a2.as(B).b().should.be.true;
+        a2.as(B).c.should.be.false;
         
     });
     

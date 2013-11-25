@@ -1,4 +1,4 @@
-// blackstone@0.0.10
+// blackstone@0.0.11
 // https://github.com/isglazunov/blackstone
 
 // Help
@@ -10,7 +10,7 @@
     
     // Blackstone Version
     // Version for internal use
-    var __version = '0.0.10';
+    var __version = '0.0.11';
     
     // new (lodash, async)
     // Main constructor
@@ -718,7 +718,7 @@
                 
             })();
             
-            typing.Item = (function(Exports) {
+            typing.Item = (function() {
                 
                 // X // type.new
                 var Item = function() {};
@@ -753,9 +753,6 @@
                     
                 };
                 
-                // Support object for method item.as.
-                Item.prototype.__as = {};
-                
                 // Pseudo typing logic.
                 // Attension! Construction without arguments!
                 // (type Type)
@@ -764,7 +761,7 @@
                     var item = this;
                     
                     if (!item.__as[type.id]) {
-                        type.as(item, new Exports, function(exports) {
+                        type.as(item, function(exports) {
                             item.__as[type.id] = exports;
                         });
                     }
@@ -775,7 +772,7 @@
                 
                 return Item;
                 
-            })(typing.Exports);
+            })();
             
             typing.Prototypes = (function(typing) {
                 
@@ -878,6 +875,8 @@
                     lodash.extend(__prototype, type.prototype);
                     
                     __prototype.__type = type;
+                
+                    __prototype.__as = {};
                     
                     for (var p in prototypes.all) {
                         if (prototypes.all[p] instanceof Type) {
@@ -973,7 +972,7 @@
                 // .inheritor.call(item Item, attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // 'as' (attr Object, item Item, prototype Object, typePrototype Object, typesPrototype Object, type Type, prototypes { all: [Type], types: { id: Type } })
                 // => exports Item with wrapped functions
-                Type.prototype.as = function(item, exports, precallback) {
+                Type.prototype.as = function(item, precallback) {
                     var type = this;
                     
                     var __prototypes = {};
@@ -984,7 +983,7 @@
                     
                     var Prototype = function() {};
                     
-                    Prototype.prototype = exports;
+                    Prototype.prototype = new Exports;
                     
                     lodash.extend(Prototype.prototype, __prototypes);
                     lodash.extend(Prototype.prototype, __prototype);
