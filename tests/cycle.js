@@ -27,157 +27,245 @@ describe('cycle', function() {
         
     });
     
-    it('Array !reverse', function(done) {
+    describe('Object', function() {
         
-        var array = [];
+        it('default', function(done) {
+            
+            var object = {};
+            
+            for (var a = 0; a < 101; a++) {
+                object[a] = a;
+            }
+            
+            var i = 0;
+            
+            cycle(object, function(value, key) {
+                
+                i++;
+                value.should.equal(i);
+                this.next();
+                
+            }, { callback: function() {
+                
+                i.should.be.equal(100);
+                
+                done();
+                
+            } });
+            
+        });
         
-        for (var a = 0; a < 101; a++) {
-            array[a] = a;
-        }
+        it('sync', function(done) {
+            
+            var object = {};
+            
+            for (var a = 0; a < 101; a++) {
+                object[a] = a;
+            }
+            
+            var i = 0;
+            
+            cycle(object, function(value, key) {
+                
+                i++;
+                value.should.equal(i);
+                
+            }, { callback: function() {
+                
+                i.should.be.equal(100);
+                
+                done();
+                
+            }, sync: true });
+            
+        });
         
-        var i = 0;
+        it('reverse', function(done) {
+            
+            var object = {};
+            
+            for (var a = 0; a < 101; a++) {
+                object[a] = a;
+            }
+            
+            var i = 100;
+            
+            cycle(object, function(value, key) {
+                
+                i--;
+                value.should.equal(i);
+                this.next();
+                
+            }, { callback: function() {
+                
+                i.should.be.equal(0);
+                
+                done();
+                
+            }, reverse: true });
+            
+        });
+    });
+    
+    describe('Array', function() {
         
-        cycle(array, function(value, key) {
+        it('default', function(done) {
+           
+            var array = [];
             
-            i++;
-            value.should.equal(i);
-            this.next();
+            for (var a = 0; a < 101; a++) {
+                array[a] = a;
+            }
             
-        }, { callback: function() {
+            var i = 0;
             
-            i.should.be.equal(100);
+            cycle(array, function(value, key) {
+                
+                i++;
+                value.should.equal(i);
+                this.next();
+                
+            }, { callback: function() {
+                
+                i.should.be.equal(100);
+                
+                done();
+                
+            } }); 
+        });
+        
+        it('sync', function(done) {
             
-            done();
+            var array = [];
             
-        } });
+            for (var a = 0; a < 101; a++) {
+                array[a] = a;
+            }
+            
+            var i = 0;
+            
+            cycle(array, function(value, key) {
+                
+                i++;
+                value.should.equal(i);
+                
+            }, { callback: function() {
+                
+                i.should.be.equal(100);
+                
+                done();
+                
+            }, sync: true });
+            
+        });
+        
+        it('reverse', function(done) {
+            
+            var array = [];
+            
+            for (var a = 0; a < 101; a++) {
+                array[a] = a;
+            }
+            
+            var i = 100;
+            
+            cycle(array, function(value, key) {
+                
+                i--;
+                value.should.equal(i);
+                this.next();
+                
+            }, { callback: function() {
+                
+                i.should.be.equal(0);
+                
+                done();
+                
+            }, reverse: true });
+            
+        });
         
     });
     
-    it('Object !reverse', function(done) {
+    describe('Object List', function() {
         
-        var object = {};
+        var l = new blackstone.lists.List;
         
-        for (var a = 0; a < 101; a++) {
-            object[a] = a;
-        }
+        var s0 = new blackstone.lists.Superposition;
+        var s1 = new blackstone.lists.Superposition;
+        var s2 = new blackstone.lists.Superposition;
+        var s3 = new blackstone.lists.Superposition;
         
-        var i = 0;
+        l.append(s0, s1, s2, s3);
         
-        cycle(object, function(value, key) {
+        it('default', function(done) {
+            var results = [];
             
-            i++;
-            value.should.equal(i);
-            this.next();
-            
-        }, { callback: function() {
-            
-            i.should.be.equal(100);
-            
-            done();
-            
-        } });
+            cycle(l, function(sup) {
+                results.push(sup);
+                if (this.next) this.next();
+            }, { callback: function() {
+                results.should.be.eql([s0, s1, s2, s3]);
+                done();
+            } });
+        });
         
-    });
-    
-    it('Array reverse', function(done) {
+        it('sync', function() {
+            var results = [];
+            cycle(l, function(sup) {
+                results.push(sup);
+            }, { sync: true });
+            results.should.be.eql([s0, s1, s2, s3]);
+        });
         
-        var array = [];
-        
-        for (var a = 0; a < 101; a++) {
-            array[a] = a;
-        }
-        
-        var i = 100;
-        
-        cycle(array, function(value, key) {
-            
-            i--;
-            value.should.equal(i);
-            this.next();
-            
-        }, { callback: function() {
-            
-            i.should.be.equal(0);
-            
-            done();
-            
-        }, reverse: true });
+        it('reverse', function() {
+            var results = [];
+            cycle(l, function(sup) {
+                results.push(sup);
+                if (this.next) this.next();
+            }, { reverse: true });
+            results.should.be.eql([s3, s2, s1, s0]);
+        });
         
     });
     
-    it('Object reverse', function(done) {
+    describe('Object Item:List', function() {
+        var l = blackstone.List.new();
         
-        var object = {};
+        var s0 = blackstone.Superposition.new();
+        var s1 = blackstone.Superposition.new();
+        var s2 = blackstone.Superposition.new();
+        var s3 = blackstone.Superposition.new();
         
-        for (var a = 0; a < 101; a++) {
-            object[a] = a;
-        }
+        l.append([s0, s1, s2, s3]);
         
-        var i = 100;
+        it('default', function(done) {
+            var results = [];
+            cycle(l, function(sup) {
+                results.push(sup);
+                if (this.next) this.next();
+            }, { callback: function() {
+                results.should.be.eql([s0, s1, s2, s3]);
+                done();
+            } });
+        });
         
-        cycle(object, function(value, key) {
-            
-            i--;
-            value.should.equal(i);
-            this.next();
-            
-        }, { callback: function() {
-            
-            i.should.be.equal(0);
-            
-            done();
-            
-        }, reverse: true });
+        it('sync', function() {
+            var results = [];
+            cycle(l, function(sup) {
+                results.push(sup);
+            }, { sync: true });
+            results.should.be.eql([s0, s1, s2, s3]);
+        });
         
-    });
-    
-    it('Array sync', function(done) {
-        
-        var array = [];
-        
-        for (var a = 0; a < 101; a++) {
-            array[a] = a;
-        }
-        
-        var i = 0;
-        
-        cycle(array, function(value, key) {
-            
-            i++;
-            value.should.equal(i);
-            
-        }, { callback: function() {
-            
-            i.should.be.equal(100);
-            
-            done();
-            
-        }, sync: true });
-        
-    });
-    
-    it('Object sync', function(done) {
-        
-        var object = {};
-        
-        for (var a = 0; a < 101; a++) {
-            object[a] = a;
-        }
-        
-        var i = 0;
-        
-        cycle(object, function(value, key) {
-            
-            i++;
-            value.should.equal(i);
-            
-        }, { callback: function() {
-            
-            i.should.be.equal(100);
-            
-            done();
-            
-        }, sync: true });
+        it('reverse', function() {
+            var results = [];
+            cycle(l, function(sup) {
+                results.push(sup);
+                if (this.next) this.next();
+            }, { reverse: true });
+            results.should.be.eql([s3, s2, s1, s0]);
+        });
         
     });
     

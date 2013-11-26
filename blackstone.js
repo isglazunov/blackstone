@@ -30,20 +30,7 @@
         
         // Tools // start
         
-        // (condition, handler, callback)
-        
-        // condition(next(Boolean) Function) Function
-        // handler.call({ next Function }) Function
-        // callback Function
-        
-        // condition Array
-        // handler.call({ next Function }, value, key) Function
-        // callback Function
-        
-        // condition Object
-        // handler.call({ next Function }, value, key) Function
-        // callback Function
-        
+        // (condition, handler, options { sync = false Boolean, reverse = false Boolean, callback = undefined Function, native = false Boolean } Object)
         blackstone.cycle = function(condition, handler, _options) {
                     
             if (!lodash.isObject(_options)) var _options = {};
@@ -51,11 +38,14 @@
             var options = lodash.defaults(_options, {
                 sync: false,
                 reverse: false,
-                callback: undefined
+                callback: undefined,
+                native: false
             });
             
             var callback = options.callback? options.callback : function() {};
             
+            // condition(next(Boolean) Function) Function
+            // handler.call({ next Function }) Function
             if (lodash.isFunction(condition)) {
                 
                 var handlerContext = {
@@ -89,17 +79,21 @@
                 iteration();
                 
             } else {
+                
+                // condition Array
+                // handler.call({ next Function }, value, key) Function
                 if(lodash.isArray(condition)) {
                     
-                    if (!options.reverse) var key = 0;
-                    else var key = condition.length - 1;
-                    
                     if (!options.reverse) {
+                        var key = 0;
+                        
                         var conditionFunction = function() {
                             key++;
                             this.next(key < condition.length);
                         };
                     } else {
+                        var key = condition.length - 1;
+                        
                         var conditionFunction = function() {
                             key--;
                             this.next(key >= 0);
@@ -112,11 +106,60 @@
                     
                 } else if(lodash.isObject(condition)) {
                     
-                    var keys = lodash.keys(condition);
+                    // condition List
+                    // handler.call({ next Function }, superposition Superposition, position Position)
+                    if (!options.native && condition instanceof blackstone.lists.List) {
+                        
+                        var now;
+                        
+                        if (!options.reverse) {
+                            var next = condition.first;
+                            
+                            var conditionFunction = function() {
+                                now = next;
+                                if (now) {
+                                    next = now.next;
+                                    this.next(true);
+                                } else this.next(false);
+                            };
+                            
+                        } else {
+                            var next = condition.last;
+                            
+                            var conditionFunction = function() {
+                                now = next;
+                                if (now) {
+                                    next = now.prev;
+                                    this.next(true);
+                                } else this.next(false);
+                            };
+                            
+                        }
+                        
+                        blackstone.cycle(conditionFunction, function() {
+                            handler.call(this, now.super, now);
+                        }, options);
+                        
+                    // condition Item:List
+                    // handler.call({ next Function }, superposition Item:Superposition, position Item:Position) Function
+                    } else if (!options.native && condition instanceof blackstone.Item && condition.of(blackstone.List)) {
+                        
+                        blackstone.cycle(condition.__native, function(sup, pos) {
+                            handler.call(this, sup.value, pos.value);
+                        }, options);
+                        
+                    // condition Object
+                    // handler.call({ next Function }, value, key) Function
+                    } else {
+                        
+                        var keys = lodash.keys(condition);
+                        
+                        blackstone.cycle(keys, function(key, index) {
+                            handler.call(this, condition[key], key);
+                        }, options);
+                    }
                     
-                    blackstone.cycle(keys, function(key, index) {
-                        handler.call(this, condition[key], key);
-                    }, options);
+                    var keys = lodash.keys(condition);
                     
                 } else throw new Error('!condition');
             }
