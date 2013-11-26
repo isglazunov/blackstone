@@ -12,14 +12,14 @@ describe('cycle', function() {
         
         cycle(function() {
             i++;
-            this.next( i < 101 );
+            this.next( i < 11 );
         }, function() {
             h++;
             this.next();
         }, { callback: function() {
             
-            i.should.be.equal(101);
-            h.should.be.equal(100);
+            i.should.be.equal(11);
+            h.should.be.equal(10);
             
             done();
             
@@ -33,7 +33,7 @@ describe('cycle', function() {
             
             var object = {};
             
-            for (var a = 0; a < 101; a++) {
+            for (var a = 0; a < 11; a++) {
                 object[a] = a;
             }
             
@@ -41,13 +41,13 @@ describe('cycle', function() {
             
             cycle(object, function(value, key) {
                 
-                i++;
                 value.should.equal(i);
+                i++;
                 this.next();
                 
             }, { callback: function() {
                 
-                i.should.be.equal(100);
+                i.should.be.equal(10);
                 
                 done();
                 
@@ -59,7 +59,7 @@ describe('cycle', function() {
             
             var object = {};
             
-            for (var a = 0; a < 101; a++) {
+            for (var a = 0; a < 11; a++) {
                 object[a] = a;
             }
             
@@ -67,12 +67,12 @@ describe('cycle', function() {
             
             cycle(object, function(value, key) {
                 
-                i++;
                 value.should.equal(i);
+                i++;
                 
             }, { callback: function() {
                 
-                i.should.be.equal(100);
+                i.should.be.equal(10);
                 
                 done();
                 
@@ -84,21 +84,21 @@ describe('cycle', function() {
             
             var object = {};
             
-            for (var a = 0; a < 101; a++) {
+            for (var a = 0; a < 11; a++) {
                 object[a] = a;
             }
             
-            var i = 100;
+            var i = 10;
             
             cycle(object, function(value, key) {
                 
-                i--;
                 value.should.equal(i);
+                i--;
                 this.next();
                 
             }, { callback: function() {
                 
-                i.should.be.equal(0);
+                i.should.be.equal(-1);
                 
                 done();
                 
@@ -113,7 +113,7 @@ describe('cycle', function() {
            
             var array = [];
             
-            for (var a = 0; a < 101; a++) {
+            for (var a = 0; a < 11; a++) {
                 array[a] = a;
             }
             
@@ -121,13 +121,13 @@ describe('cycle', function() {
             
             cycle(array, function(value, key) {
                 
-                i++;
                 value.should.equal(i);
+                i++;
                 this.next();
                 
             }, { callback: function() {
                 
-                i.should.be.equal(100);
+                i.should.be.equal(10);
                 
                 done();
                 
@@ -138,7 +138,7 @@ describe('cycle', function() {
             
             var array = [];
             
-            for (var a = 0; a < 101; a++) {
+            for (var a = 0; a < 11; a++) {
                 array[a] = a;
             }
             
@@ -146,12 +146,12 @@ describe('cycle', function() {
             
             cycle(array, function(value, key) {
                 
-                i++;
                 value.should.equal(i);
+                i++;
                 
             }, { callback: function() {
                 
-                i.should.be.equal(100);
+                i.should.be.equal(10);
                 
                 done();
                 
@@ -163,21 +163,21 @@ describe('cycle', function() {
             
             var array = [];
             
-            for (var a = 0; a < 101; a++) {
+            for (var a = 0; a < 11; a++) {
                 array[a] = a;
             }
             
-            var i = 100;
+            var i = 10;
             
             cycle(array, function(value, key) {
                 
-                i--;
                 value.should.equal(i);
+                i--;
                 this.next();
                 
             }, { callback: function() {
                 
-                i.should.be.equal(0);
+                i.should.be.equal(-1);
                 
                 done();
                 

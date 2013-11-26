@@ -89,18 +89,18 @@
                 if(lodash.isArray(condition)) {
                     
                     if (!options.reverse) {
-                        var key = 0;
+                        var key = -1;
                         
                         var conditionFunction = function() {
                             key++;
-                            this.next(key < condition.length);
+                            this.next(key < condition.length -1);
                         };
                     } else {
-                        var key = condition.length - 1;
+                        var key = condition.length;
                         
                         var conditionFunction = function() {
                             key--;
-                            this.next(key >= 0);
+                            this.next(key > -1);
                         };
                     }
                     
