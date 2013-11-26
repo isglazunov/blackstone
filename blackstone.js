@@ -32,15 +32,19 @@
         
         // (condition, handler, options { sync = false Boolean, reverse = false Boolean, callback = undefined Function, native = false Boolean } Object)
         blackstone.cycle = function(condition, handler, _options) {
-                    
-            if (!lodash.isObject(_options)) var _options = {};
             
-            var options = lodash.defaults(_options, {
-                sync: false,
-                reverse: false,
-                callback: undefined,
-                native: false
-            });
+            if (this === true) {
+                var options = _options;
+            } else {
+                if (!lodash.isObject(_options)) var _options = {};
+                
+                var options = lodash.defaults(_options, {
+                    sync: false,
+                    reverse: false,
+                    callback: undefined,
+                    native: false
+                });
+            }
             
             var callback = options.callback? options.callback : function() {};
             
@@ -100,7 +104,7 @@
                         };
                     }
                     
-                    blackstone.cycle(conditionFunction, function() {
+                    blackstone.cycle.call(true, conditionFunction, function() {
                         handler.call(this, condition[key], key);
                     }, options);
                     
@@ -136,7 +140,7 @@
                             
                         }
                         
-                        blackstone.cycle(conditionFunction, function() {
+                        blackstone.cycle.call(true, conditionFunction, function() {
                             handler.call(this, now.super, now);
                         }, options);
                         
@@ -144,7 +148,7 @@
                     // handler.call({ next Function }, superposition Item:Superposition, position Item:Position) Function
                     } else if (!options.native && condition instanceof blackstone.Item && condition.of(blackstone.List)) {
                         
-                        blackstone.cycle(condition.__native, function(sup, pos) {
+                        blackstone.cycle.call(true, condition.__native, function(sup, pos) {
                             handler.call(this, sup.value, pos.value);
                         }, options);
                         
@@ -154,7 +158,7 @@
                         
                         var keys = lodash.keys(condition);
                         
-                        blackstone.cycle(keys, function(key, index) {
+                        blackstone.cycle.call(true, keys, function(key, index) {
                             handler.call(this, condition[key], key);
                         }, options);
                     }
