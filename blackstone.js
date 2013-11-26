@@ -863,8 +863,6 @@
                 Prototypes.prototype.each = function(handler, options) {
                     
                     this.list.each(function(superposition, position) {
-                        this.prototype = superposition.value
-                        
                         handler.call(this, superposition.value);
                     }, options);
                     
