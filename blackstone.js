@@ -1,4 +1,4 @@
-// blackstone@0.0.13
+// blackstone@0.0.14
 // https://github.com/isglazunov/blackstone
 
 // Help
@@ -10,7 +10,7 @@
     
     // Blackstone Version
     // Version for internal use
-    var __version = '0.0.13';
+    var __version = '0.0.14';
     
     // new (lodash, async)
     // Main constructor
