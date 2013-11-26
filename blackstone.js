@@ -115,27 +115,26 @@
                     if (!options.native && condition instanceof blackstone.lists.List) {
                         
                         var now;
+                        var temp = false;
                         
                         if (!options.reverse) {
-                            var next = condition.first;
+                            var now = condition.first;
                             
                             var conditionFunction = function() {
-                                now = next;
-                                if (now) {
-                                    next = now.next;
-                                    this.next(true);
-                                } else this.next(false);
+                                if (!temp) temp = true;
+                                else now = now.next;
+                                
+                                this.next(!!now);
                             };
                             
                         } else {
-                            var next = condition.last;
+                            var now = condition.last;
                             
                             var conditionFunction = function() {
-                                now = next;
-                                if (now) {
-                                    next = now.prev;
-                                    this.next(true);
-                                } else this.next(false);
+                                if (!temp) temp = true;
+                                else now = now.prev;
+                                
+                                this.next(!!now);
                             };
                             
                         }
@@ -170,8 +169,10 @@
         };
         
         // (handler.call({ next(arguments...) Function }, arguments...) Function, args Array)
-        blackstone.travel = function(handler, args) {
-            handler.apply({ next: function() { blackstone.travel(handler, arguments); } }, args);
+        blackstone.travel = function(handler) {
+            if (this == true) var args = arguments[1];
+            else var args = [].slice.call(arguments, 1, arguments.length);
+            handler.apply({ next: function() { blackstone.travel.call(true, handler, arguments); } }, args);
         };
         
         // Tools // end
@@ -181,11 +182,31 @@
             
             var lists = {};
             
+            // Private method.
+            // Unlinking with a list of positions
+            // Attention! The position should be complete!
+            // .call(list, position Position)
+            var __listRemove = function(position) {
+                if (this.first == position && this.last == position) {
+                    this.first = this.last = undefined;
+                    
+                } else if (!this.first !== position && this.last == position) {
+                    if (position.prev) this.last = position.prev;
+                    else throw new Error('The position should be complete!');
+                    
+                } else if (this.first == position && !this.last !== position) {
+                    if (position.next) this.first = position.next;
+                    else throw new Error('The position should be complete!');
+                }
+                
+                this.length--;
+            };
+            
+            // new () // => { id Number, length Number, first Position, last Position, value }
             lists.List = (function() {
                 
                 var id = 0;
                 
-                // new ()
                 var List = function() {
                     this.id = id++;
                     
@@ -196,31 +217,6 @@
                     
                     this.value = undefined;
                 };
-                
-                // Unsafe // start
-                
-                // Unlinking with a list of positions
-                // Attention! The position should be complete!
-                // (position Position)
-                List.prototype.__remove = function(position) {
-                    if (this.first == position && this.last == position) {
-                        this.first = this.last = undefined;
-                        
-                    } else if (!this.first !== position && this.last == position) {
-                        if (position.prev) this.last = position.prev;
-                        else throw new Error('The position should be complete!');
-                        
-                    } else if (this.first == position && !this.last !== position) {
-                        if (position.next) this.first = position.next;
-                        else throw new Error('The position should be complete!');
-                    }
-                    
-                    this.length--;
-                };
-                
-                // Unsafe // end
-                
-                // Safe // start
                 
                 // (superpositions... Superposition)
                 List.prototype.remove = function() {
@@ -244,7 +240,7 @@
                                 if (pos.exists) continue;
                                 
                                 if (this.last) {
-                                    this.last.__addAfter(pos);
+                                    __positionAddAfter.call(this.last, pos);
                                     this.last = pos;
                                 } else {
                                     this.first = this.last = pos;
@@ -270,7 +266,7 @@
                                 if (pos.exists) continue;
                                 
                                 if (this.first) {
-                                    this.first.__addBefore(pos);
+                                    __positionAddBefore.call(this.first, pos);
                                     this.first = pos;
                                 } else {
                                     this.first = this.last = pos;
@@ -285,75 +281,9 @@
                     return this.length;
                 };
                 
-                // (handler.call({ position, super, ~ next }, super Superposition, position Position) Function<, options { sync Boolean, reverse Boolean, callback() Function }>)
-                List.prototype.each = function(handler, _options) {
-                    
-                    var list = this;
-                    
-                    if (!lodash.isObject(_options)) var _options = {};
-                    
-                    var options = lodash.defaults(_options, {
-                        sync: false,
-                        reverse: false,
-                        callback: undefined
-                    });
-                    
-                    var callback = options.callback? options.callback : function() {};
-                    
-                    if (!options.reverse) {
-                        if (list.first) {
-                            if (!options.sync) {
-                                list.first.travel(function(position) {
-                                    var travel = this;
-                                    
-                                    var nexted = false;
-                                    handler.call({ position: position, super: position.super, next: function() {
-                                        if (!nexted) {
-                                            nexted = true;
-                                            if (position.next) travel.next(position.next);
-                                            else callback();
-                                        }
-                                    } }, position.super, position);
-                                });
-                            } else {
-                                list.first.travel(function(position) {
-                                    var travel = this;
-                                    
-                                    handler.call({ position: position, super: position.super }, position.super, position);
-                                    
-                                    if (position.next) travel.next(position.next);
-                                    else callback();
-                                });
-                            }
-                        } else callback();
-                    } else {
-                        if (list.last) {
-                            if (!options.sync) {
-                                list.last.travel(function(position) {
-                                    var travel = this;
-                                    
-                                    var nexted = false;
-                                    handler.call({ position: position, super: position.super, next: function() {
-                                        if (!nexted) {
-                                            nexted = true;
-                                            if (position.prev) travel.next(position.prev);
-                                            else callback();
-                                        }
-                                    } }, position.super, position);
-                                });
-                            } else {
-                                list.last.travel(function(position) {
-                                    var travel = this;
-                                    
-                                    handler.call({ position: position, super: position.super }, position.super, position);
-                                    
-                                    if (position.prev) travel.next(position.prev);
-                                    else callback();
-                                });
-                            }
-                        } else callback();
-                    }
-                    
+                // (handler.call({ ~ next Function }, super Superposition, position Position) Function<, options { sync Boolean, reverse Boolean, callback() Function }>)
+                List.prototype.each = function(handler, options) {
+                    blackstone.cycle(this, handler, options);
                 };
                 
                 // (comparator.call({ next(Boolean) Function }, source Superposition, target Superposition) Function<, callback Function<, handler Function>>)
@@ -367,7 +297,7 @@
                         
                         if (list.first.next) {
                             
-                            list.first.next.travel(function(pos) {
+                            blackstone.travel(function(pos) {
                                 var travel = this;
                                 
                                 var next = pos.next;
@@ -379,7 +309,7 @@
                                     else callback();
                                 });
                                 
-                            });
+                            }, list.first.next);
                             
                         } else callback();
                         
@@ -401,11 +331,54 @@
                     });
                 };
                 
-                // Safe // end
-                
                 return List;
                 
             })();
+            
+            // Private methods // start
+            
+            // Linking with a position // start
+            
+            // .call(position Position, position Position)
+            var __positionAddBefore = function(pos) {
+                if (this.prev) {
+                    this.prev.next = pos;
+                    pos.prev = this.prev;
+                }
+                this.prev = pos;
+                pos.next = this;
+            };
+            
+            // .call(position Position, position Position)
+            var __positionAddAfter = function(pos) {
+                if (this.next) {
+                    this.next.prev = pos;
+                    pos.next = this.next;
+                }
+                this.next = pos;
+                pos.prev = this;
+            };
+            
+            // Linking with a position // end
+            
+            // Unlinking with the positions
+            // .call(position Position)
+            var __positionRemove = function() {
+                if (this.prev && this.next) {
+                    this.prev.next = this.next;
+                    this.next.prev = this.prev;
+                    
+                } else if (this.prev && !this.next) {
+                    this.prev.next = undefined;
+                
+                } else if (!this.prev && this.next) {
+                    this.next.prev = undefined;
+                }
+                
+                this.next = this.prev = undefined;
+            };
+            
+            // Private methods // end
             
             lists.Position = (function() {
                 
@@ -425,47 +398,6 @@
                 
                 // Unsafe // start
                 
-                // Linking with a position // start
-                
-                // (position Position)
-                Position.prototype.__addBefore = function(pos) {
-                    if (this.prev) {
-                        this.prev.next = pos;
-                        pos.prev = this.prev;
-                    }
-                    this.prev = pos;
-                    pos.next = this;
-                };
-                
-                // (position Position)
-                Position.prototype.__addAfter = function(pos) {
-                    if (this.next) {
-                        this.next.prev = pos;
-                        pos.next = this.next;
-                    }
-                    this.next = pos;
-                    pos.prev = this;
-                };
-                
-                // Linking with a position // end
-                
-                // Unlinking with the positions
-                // ()
-                Position.prototype.__remove = function() {
-                    if (this.prev && this.next) {
-                        this.prev.next = this.next;
-                        this.next.prev = this.prev;
-                        
-                    } else if (this.prev && !this.next) {
-                        this.prev.next = undefined;
-                    
-                    } else if (!this.prev && this.next) {
-                        this.next.prev = undefined;
-                    }
-                    
-                    this.next = this.prev = undefined;
-                };
-                
                 // Find position for position in prevs
                 // (comparator Function, callback Function)
                 Position.prototype.__compare = function(comparator, callback) {
@@ -483,7 +415,7 @@
                         edge = true;
                         result();
                     } else {
-                        target.prev.travel(function(source) {
+                        blackstone.travel(function(source){
                             var travel = this;
                             
                             comparator.call({ next: function(response) {
@@ -502,7 +434,7 @@
                                     }
                                 }
                             } }, source.super, target.super);
-                        });
+                        }, target.prev);
                     }
                 };
                 
@@ -534,8 +466,8 @@
                 // => this.list.length
                 Position.prototype.remove = function() {
                     if (this.exists) {
-                        this.list.__remove(this);
-                        this.__remove();
+                        __listRemove.call(this.list, this);
+                        __positionRemove.call(this);
                         this.exists = false;
                     }
                     return this.list.length;
@@ -554,7 +486,7 @@
                             
                             if (pos.exists) continue;
                             
-                            this.__addAfter(pos);
+                            __positionAddAfter.call(this, pos);
                             
                             this.list.length++;
                             pos.exists = true;
@@ -577,7 +509,7 @@
                             
                             if (pos.exists) continue;
                             
-                            this.__addBefore(pos);
+                            __positionAddBefore.call(this, pos);
                             
                             this.list.length++;
                             pos.exists = true;
@@ -585,19 +517,6 @@
                     }
                     
                     return this.list.length;
-                };
-                    
-                // (handler( ~ { next(direction Position) Function }, position Position) Function)
-                Position.prototype.travel = function(handler) {
-                    var position = this;
-                    
-                    handler.call({ next: function(direction) {
-                        
-                        if (!direction instanceof Position) throw new Error('direction is not a position');
-                        
-                        direction.travel(handler);
-                        
-                    } }, position);
                 };
                 
                 // Safe // end
@@ -940,14 +859,13 @@
                     
                 };
                 
-                // (handler Function<, options { sync Boolean, reverse Boolean, callback Function }>)
+                // (handler(prototype) Function<, blackstone.cycle ~ options>)
                 Prototypes.prototype.each = function(handler, options) {
                     
                     this.list.each(function(superposition, position) {
                         this.prototype = superposition.value
-                        handler.call(this, superposition.value, superposition, position);
                         
-                        if (this.next) this.next();
+                        handler.call(this, superposition.value);
                     }, options);
                     
                 };
@@ -1356,27 +1274,6 @@
                 });
             };
             
-            // (handler( ~ { next(direction Position) Function }, position Position) Function)
-            Position.prototype.travel = function(handler) {
-                var position = this;
-                
-                position.__native.travel(function(pos) {
-                    
-                    var travel = this;
-                    
-                    handler.call({ next: function(_direction) {
-                        
-                        if (_direction instanceof Item) {
-                            var direction = _direction.super().in(position.list());
-                        } else throw new Error('direction is not a item');
-                        
-                        travel.next(direction.__native);
-                        
-                    } }, pos.value);
-                    
-                });
-            };
-            
             // => prev position Position
             Position.prototype.prev = function() {
                 return this.__native.prev? this.__native.prev.value : this.__native.prev
@@ -1649,24 +1546,7 @@
             
             // (handler.call(~ { native lists.Superposition, super Superposition, position Position }, superposition Superposition, position Position) Function<, options Object>) ~ adapter
             List.prototype.each = function(handler, options) {
-                var list = this;
-                
-                this.__native.each(function(nativeSuperposition, nativePosition) {
-                    var context = this;
-                    
-                    context.native = nativeSuperposition;
-                    
-                    var superposition = nativeSuperposition.value;
-                    context.super = superposition;
-                    
-                    var position = nativePosition.value;
-                    context.position = position;
-                    
-                    context.list = list;
-                    
-                    handler.call(context, superposition, position);
-                }, options);
-                
+                blackstone.cycle(this, handler, options);
             };
             
             // ()

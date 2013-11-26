@@ -26,6 +26,6 @@ it('travel', function(done) {
             done();
         }
         
-    }, [o0]);
+    }, o0);
     
 });

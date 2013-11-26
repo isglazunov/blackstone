@@ -187,30 +187,6 @@ describe('Blackstone Lists', function() {
         
     });
     
-    it('position.travel', function() {
-        var l = new List;
-        
-        var s0 = new Super;
-        var s1 = new Super;
-        var s2 = new Super;
-        
-        l.append(s0, s1, s2);
-        
-        var counter = 0 - 1;
-        var results = [];
-        s1.in(l).travel(function(pos) {
-            results.push(pos.super);
-            
-            counter++;
-            if (counter == 0) this.next(pos.prev);
-            else if (counter == 1) this.next(pos.next);
-            else if (counter == 2) this.next(pos.next);
-            else if (counter == 3) this.next(pos.prev);
-        });
-        
-        results.should.be.eql([s1, s0, s1, s2, s1]);
-    });
-    
     it('list.sort', function(done) {
         var l = new List;
         
