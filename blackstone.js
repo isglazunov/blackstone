@@ -93,14 +93,14 @@
                         
                         var conditionFunction = function() {
                             key++;
-                            this.next(key < condition.length -1);
+                            this.next(key < condition.length);
                         };
                     } else {
                         var key = condition.length;
                         
                         var conditionFunction = function() {
                             key--;
-                            this.next(key > -1);
+                            this.next(key >= 0);
                         };
                     }
                     
