@@ -77,7 +77,6 @@ describe('traveler', function() {
                     if (counter < 30000) return [];
                     else {
                         counter.should.be.eql(30000);
-                        return undefined;
                     }
                 }
             });
@@ -117,7 +116,6 @@ describe('traveler', function() {
                     if (counter < 30000) return [];
                     else {
                         counter.should.be.eql(30000);
-                        return undefined;
                     }
                 }
             });
