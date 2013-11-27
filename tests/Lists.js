@@ -164,6 +164,7 @@ describe('Blackstone Lists', function() {
                 if (this.next) this.next();
             }, { callback: function() {
                 results.should.be.eql([s0, s1, s2, s3]);
+                
                 done();
             } });
         });
@@ -176,13 +177,16 @@ describe('Blackstone Lists', function() {
             results.should.be.eql([s0, s1, s2, s3]);
         });
         
-        it('reverse', function() {
+        it('reverse', function(done) {
             var results = [];
             l.each(function(sup) {
                 results.push(sup);
                 if (this.next) this.next();
-            }, { reverse: true });
-            results.should.be.eql([s3, s2, s1, s0]);
+            }, { reverse: true, callback: function() {
+                results.should.be.eql([s3, s2, s1, s0]);
+                
+                done();
+            } });
         });
         
     });

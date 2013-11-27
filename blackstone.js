@@ -52,13 +52,14 @@
             // handler.call({ next Function }) Function
             if (lodash.isFunction(condition)) {
                 
-                var handlerContext = {
-                    next: function() {
-                        iteration();
-                    }
-                };
-                
                 if (!options.sync) {
+                
+                    var handlerContext = {
+                        next: function() {
+                            lodash.defer(iteration);
+                        }
+                    };
+                    
                     var conditionContext = {
                         next: function(response) {
                             if (response) handler.call(handlerContext);
@@ -66,6 +67,13 @@
                         }
                     };
                 } else {
+                
+                    var handlerContext = {
+                        next: function() {
+                            iteration();
+                        }
+                    };
+                    
                     var conditionContext = {
                         next: function(response) {
                             if (response) {
@@ -169,10 +177,10 @@
         };
         
         // (handler.call({ next(arguments...) Function }, arguments...) Function, args Array)
-        blackstone.travel = function(handler) {
-            if (this == true) var args = arguments[1];
-            else var args = [].slice.call(arguments, 1, arguments.length);
-            handler.apply({ next: function() { blackstone.travel.call(true, handler, arguments); } }, args);
+        blackstone.travel = function(handler, args) {
+            handler.apply({ next: function() {
+                lodash.defer(blackstone.travel, handler, arguments);
+            } }, args);
         };
         
         // Tools // end
@@ -309,7 +317,7 @@
                                     else callback();
                                 });
                                 
-                            }, list.first.next);
+                            }, [list.first.next]);
                             
                         } else callback();
                         
@@ -434,7 +442,7 @@
                                     }
                                 }
                             } }, source.super, target.super);
-                        }, target.prev);
+                        }, [target.prev]);
                     }
                 };
                 

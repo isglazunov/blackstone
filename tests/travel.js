@@ -13,7 +13,6 @@ it('travel', function(done) {
     travel(function(o) {
         
         i++;
-        
         if (i == 1) {
             o.should.equal(o0);
             this.next(o2);
@@ -26,6 +25,6 @@ it('travel', function(done) {
             done();
         }
         
-    }, o0);
+    }, [o0]);
     
 });

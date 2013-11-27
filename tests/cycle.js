@@ -184,13 +184,15 @@ describe('cycle', function() {
             results.should.be.eql([s0, s1, s2, s3]);
         });
         
-        it('reverse', function() {
+        it('reverse', function(done) {
             var results = [];
             cycle(l, function(sup) {
                 results.push(sup);
                 if (this.next) this.next();
-            }, { reverse: true });
-            results.should.be.eql([s3, s2, s1, s0]);
+            }, { reverse: true, callback: function() {
+                results.should.be.eql([s3, s2, s1, s0]);
+                done();
+            } });
         });
         
     });
@@ -224,13 +226,15 @@ describe('cycle', function() {
             results.should.be.eql([s0, s1, s2, s3]);
         });
         
-        it('reverse', function() {
+        it('reverse', function(done) {
             var results = [];
             cycle(l, function(sup) {
                 results.push(sup);
                 if (this.next) this.next();
-            }, { reverse: true });
-            results.should.be.eql([s3, s2, s1, s0]);
+            }, { reverse: true, callback: function() {
+                done();
+                results.should.be.eql([s3, s2, s1, s0]);
+            } });
         });
         
     });

@@ -127,7 +127,7 @@ describe('Blackstone Typing', function() {
         
     });
     
-    it('item of', function() {
+    it('of', function() {
         
         var A = Type.inherit();
         
