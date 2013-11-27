@@ -53,32 +53,22 @@
             if (lodash.isFunction(condition)) {
                 
                 if (!options.sync) {
-                
-                    var handlerContext = {
-                        next: function() {
-                            lodash.defer(iteration);
-                        }
-                    };
-                    
                     var conditionContext = {
                         next: function(response) {
-                            if (response) handler.call(handlerContext);
+                            if (response) handler.call({
+                                next: function() {
+                                    lodash.defer(iteration);
+                                }
+                            });
                             else callback();
                         }
                     };
                 } else {
-                
-                    var handlerContext = {
-                        next: function() {
-                            iteration();
-                        }
-                    };
-                    
                     var conditionContext = {
                         next: function(response) {
                             if (response) {
                                 handler();
-                                handlerContext.next();
+                                iteration();
                             } else callback();
                         }
                     };
