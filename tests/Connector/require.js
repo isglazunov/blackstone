@@ -1,7 +1,10 @@
 require('should');
 var blackstone = require('../../blackstone.js');
 
-it('Blackstone Connector', function(){
-    Blackstone.should.have.type('function');
-    blackstone.should.be.an.instanceof(Blackstone);
+describe('Blackstone', function() {
+    describe('Connector', function() {
+        it('Require', function() {
+            blackstone.should.be.an.instanceof(Blackstone);
+        });
+    });
 });

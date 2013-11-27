@@ -9,16 +9,18 @@
         <script src="../../node_modules/should/should.js"></script>
         
         <script src="../../node_modules/lodash/lodash.js"></script>
-        <script src="../../node_modules/async/lib/async.js"></script>
+        
         <script src="../../blackstone.js"></script>
         
         <script>
-            it('Blackstone Connector', function(){
-                Blackstone.should.have.type('function');
-                
-                var blackstone = new Blackstone(_, async);
-                
-                blackstone.should.be.an.instanceof(Blackstone);
+            describe('Blackstone', function() {
+                describe('Connector', function() {
+                    it('Window', function() {
+                        Blackstone.should.have.type('function');
+                        var blackstone = new Blackstone(_);
+                        blackstone.should.be.an.instanceof(Blackstone);
+                    });
+                });
             });
         </script>
         
