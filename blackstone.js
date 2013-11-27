@@ -6,7 +6,7 @@
 (function() {
     
     // Локальный указатель версии модуля Blackstone
-    var version = '0.1.0.1';
+    var version = '0.1.0.2';
     
     // Конструктор Blackstone
     // new Blackstone(§lodash!) Function
@@ -24,11 +24,13 @@
             // Предоставляет универсальный интерфейс циклов.
             (function(blackstone, lodash) {
                 
-                // Может быть синхронным и асинхронным, однако condition и handler действует по разному при синхронном и асинхронном использовании.
+                // Может быть синхронным и асинхронным, однако condition и handler действует по разном использовании.
+                // Опция args будет передана в condition при первой итерации.
                 
                 // Async
                 /* .iterator(options{
-                    sync: false Boolean
+                    args Array
+                    sync false Boolean
                     §condition.apply({ exports Object, return(reply Boolean, handlerArgs Array) Function }, conditionArgs Array) Function,
                     §handler.apply({ exports Object, return(conditionArgs...) Function }, handlerArgs Array) Function,
                     callback.call({ exports Object }) Function,
@@ -37,8 +39,9 @@
                 
                 // Sync
                 /* .iterator(options{
-                    sync: true Boolean
-                    §condition.apply({ exports Object }, conditionArgs Array) Function, // => [reply Boolean, handlerArgs Array]
+                    args Array
+                    sync true Boolean
+                    §condition.apply({ exports Object, handlerArgs Array }, conditionArgs Array) Function, // => reply Boolean
                     §handler.apply({ exports Object }, handlerArgs Array) Function, // => conditionArgs Array
                     callback.call({ exports Object }) Function,
                     exports Object
@@ -47,23 +50,28 @@
                 blackstone.iterator = function(options) {
                     
                     var options = lodash.defaults(options, {
+                        args: [],
                         exports: {},
                         callback: function() {},
-                        sync: false
+                        sync: true
                     });
                     
                     if (options.sync) {
-                        var conditionArgs = [];
+                        var conditionArgs = options.args;
                         var handlerArgs = [];
                         
                         while ((function() {
                             
-                            var result = options.condition.apply({
-                                exports: options.exports
-                            }, conditionArgs);
+                            var context = {
+                                exports: options.exports,
+                                handlerArgs: []
+                            };
                             
-                            handlerArgs = result.handlerArgs;
-                            return result.reply;
+                            var result = options.condition.apply(context, conditionArgs);
+                            
+                            handlerArgs = context.handlerArgs;
+                            
+                            return result
                         })()) {
                             conditionArgs = options.handler.apply({ exports: options.exports }, handlerArgs);
                         }
@@ -98,7 +106,7 @@
                             });
                         }
                         
-                        handlerReturn();
+                        handlerReturn.apply(null, options.args);
                     }
                 };
                 
@@ -107,6 +115,64 @@
             // + async // Должен асинхронно выполнять итерации.
             // + sync // Должен синхронно выполнять итерации.
             // + stack async sync // Не должен переполнять стек вызовов.
+            // + load async sync // Нагрузочное тестирование и сравнение результатов.
+            
+            // Путешественник
+            // Переходит от переменных к переменным.
+            (function(blackstone, lodash) {
+                
+                // Может быть синхронным и асинхронным, однако handler действует по разном использовании.
+                // Опция args будет передана в handler при первой итерации.
+                
+                // Async
+                /* .iterator(options{
+                    sync false Boolean
+                    §handler.apply({ exports Object, return(handlerArgs...) Function }, handlerArgs Array) Function,
+                    args Array,
+                    exports Object
+                } Object) */
+                
+                // Sync
+                /* .iterator(options{
+                    sync true Boolean
+                    §handler.apply({ exports Object }, handlerArgs Array) Function, // => handlerArgs Array
+                    args Array,
+                    exports Object
+                } Object) */ // => exports Object
+                
+                blackstone.traveler = function(options) {
+                    
+                    var allow = true;
+                    
+                    blackstone.iterator({
+                        args: options.args,
+                        sync: options.sync,
+                        exports: options.exports,
+                        
+                        condition: options.sync? (function() {
+                            this.handlerArgs = arguments;
+                            return allow;
+                        }) : (function() {
+                            this.return(true, arguments);
+                        }),
+                        
+                        handler: options.sync? (function() {
+                            var result = options.handler.apply(this, arguments);
+                            if (!result) {
+                                allow = false;
+                                result = [];
+                            }
+                            return result
+                        }) : options.handler
+                    });
+                };
+                
+            }) (blackstone, lodash);
+            // ± mocha tests/Blackstone/traveler.js -R spec
+            // + async // Должен асинхронно выполнять итерации.
+            // + sync // Должен синхронно выполнять итерации.
+            // + stack async sync // Не должен переполнять стек вызовов.
+            // + load async sync // Нагрузочное тестирование и сравнение результатов.
             
         }) (blackstone, lodash);
         
@@ -174,6 +240,13 @@
 // + Все методы должны выполнять выполнять свою роль.
 
 // Версии
+
+// 0.1.0.2
+// Исправлено несколько комментариев.
+// Добавлен blackstone.traveler.
+// Исправлен blackstone.iterator, изменено поведения condition.
+// Нагрузочное тестирование асинхронных методов, стало ясно что асинхронность очень медлительна.
+// Теперь default значение sync = true.
 
 // 0.1.0.1
 // Все коментарии на русском.

@@ -20,6 +20,7 @@ describe('iterator', function() {
             }, handler: function() {
                 this.return();
             }, callback: function() {
+                this.exports.counter.should.be.eql(5);
                 ended.should.be.true; // Если итерации выполнены асинхронно, переменная измениться на true.
                 
                 done();
@@ -40,13 +41,13 @@ describe('iterator', function() {
                 counter: 0
             }, condition: function() {
                 if (this.exports.counter == 5) return false;
-                else {
-                    this.exports.counter++;
-                    return [true];
-                }
+                
+                this.exports.counter++;
+                return true;
             },
             handler: function() {},
             callback: function() {
+                this.exports.counter.should.be.eql(5);
                 ended.should.be.false; // Если итерации выполнены синхронно, переменная не измениться.
                 callbacked = true;
             }
@@ -68,6 +69,7 @@ describe('iterator', function() {
             }, 1000);
             
             blackstone.iterator({
+                sync: false,
                 condition: function() {
                     this.return(allow);
                 }, handler: function() {
@@ -81,24 +83,57 @@ describe('iterator', function() {
         
         it('sync', function(done) {
             
-            var allow = true;
-            
-            setTimeout(function() {
-                allow = false;
-            }, 1000);
+            var counter = 0;
             
             blackstone.iterator({
                 sync: true,
                 condition: function() {
-                    return allow;
-                },
-                handler: function() {},
-                callback: function() {
+                    return counter < 30000;
+                }, handler: function() {
+                    counter++;
+                }, callback: function() {
                     done();
                 }
             });
             
         });
         
+    });
+    
+    describe('load', function() {
+        
+        it('async', function(done) {
+            
+            var counter = 0;
+            
+            blackstone.iterator({
+                sync: false,
+                condition: function() {
+                    this.return(counter < 30000);
+                }, handler: function() {
+                    this.return(++counter);
+                }, callback: function() {
+                    done();
+                }
+            });
+            
+        });
+        
+        it('sync', function(done) {
+            
+            var counter = 0;
+            
+            blackstone.iterator({
+                sync: true,
+                condition: function() {
+                    return counter < 30000;
+                }, handler: function() {
+                    counter++;
+                }, callback: function() {
+                    done();
+                }
+            });
+            
+        });
     });
 });
